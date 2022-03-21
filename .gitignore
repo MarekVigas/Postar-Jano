@@ -14,3 +14,7 @@ server\.key
 src/config/
 
 potvrdenia/
+
+certs/
+
+*.env
