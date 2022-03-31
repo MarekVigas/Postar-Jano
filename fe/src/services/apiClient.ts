@@ -1,5 +1,5 @@
 import { AxiosInstance } from "axios";
-import { IOwner, IEvent, Registration, RegistrationRespone, Stat } from "../types/types"
+import { IEvent, Registration, RegistrationRespone, Stat } from "../types/types"
 
 export class ApiClient {
 

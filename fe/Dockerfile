@@ -11,11 +11,11 @@ ENV OPEN_SOURCE_CONTRIBUTOR=true
 COPY ./package*.json /app/
 
 # Better npm install https://docs.npmjs.com/cli/ci.html
-RUN npm ci
+RUN npm i
 
 COPY ./ /app/
-COPY ./.env /app/.env
 
+ARG REACT_APP_API_HOST=https://localhost:5000
 RUN npm run build
 
 FROM nginx:1.21.0-alpine

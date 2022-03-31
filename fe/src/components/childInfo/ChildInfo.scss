@@ -1,14 +1,5 @@
-.react-date-picker {
-    margin-left: 1em;
-    > div {
-        border: none;
-    }
-    .react-date-picker__calendar {
-        z-index: 5;
-    }
-    .react-date-picker__inputGroup__year {
-        width: 42px !important;
-    }
+div.react-datepicker-popper {
+    z-index: 2;
 }
 
 /*

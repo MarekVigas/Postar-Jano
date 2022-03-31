@@ -1,9 +1,9 @@
 import React from 'react';
 import './ChildInfo.scss';
 import { Registration, Gender, ActionType, IEvent } from '../../types/types';
-import DatePicker from 'react-date-picker';
+import DatePicker from 'react-datepicker';
 import { IonGrid, IonRow, IonCol, IonItem, IonLabel, IonInput, IonRadioGroup, IonRadio, IonIcon, IonSelect, IonSelectOption } from '@ionic/react';
-import { calendarOutline } from 'ionicons/icons';
+import "react-datepicker/dist/react-datepicker.css";
 
 interface ChildInfoProps {
     registration: Registration,
@@ -22,7 +22,7 @@ const ChildInfo: React.FC<ChildInfoProps> = (props) => {
         date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
         return date
     }
-      
+
     const convertLocalToUTCDate = (date: any) => {
         if (!date) {
             return date
@@ -76,10 +76,9 @@ const ChildInfo: React.FC<ChildInfoProps> = (props) => {
                 <IonCol>
                     <h4>Dátum narodenia</h4>
                     <DatePicker
-                        onChange={(date) => props.setValue(ActionType.SET_CHILD_BIRTH, convertLocalToUTCDate(date))}
-                        value={convertUTCToLocalDate(child.dateOfBirth)}
-                        calendarIcon={<IonIcon icon={calendarOutline}></IonIcon>}
-                        format="dd/MM/yyyy"
+                        onChange={(date: any) => props.setValue(ActionType.SET_CHILD_BIRTH, convertLocalToUTCDate(date))}
+                        // onChange={(date: any) => console.log(date)}
+                        selected={convertUTCToLocalDate(child.dateOfBirth)}
                         minDate={new Date(new Date().getFullYear() - props.event.max_age, 8, 15)}
                         maxDate={new Date(new Date().getFullYear() - props.event.min_age, 8, 15)}
                     />
