@@ -210,6 +210,7 @@ func (api *API) Register(c echo.Context) error {
 		Owner:         reg.Event.OwnerName + " " + reg.Event.OwnerSurname,
 		Days:          reg.RegisteredDesc,
 		Info:          info,
+		RegInfo:       reg.Event.Info,
 	}); err != nil {
 		api.logger.Error("Failed to send a confirmation mail.", zap.Error(err))
 		return err
