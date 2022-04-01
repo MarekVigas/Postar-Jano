@@ -72,7 +72,7 @@ interface Child {
     surname: string;
     gender: Gender | null;
     city: string;
-    dateOfBirth: Date;
+    dateOfBirth: Date | null;
     finishedSchoolYear: string | null;
     attendedPreviousEvents: boolean | null;
 }
