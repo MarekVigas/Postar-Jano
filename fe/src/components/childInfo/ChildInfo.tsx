@@ -77,10 +77,10 @@ const ChildInfo: React.FC<ChildInfoProps> = (props) => {
                     <h4>Dátum narodenia</h4>
                     <DatePicker
                         onChange={(date: any) => props.setValue(ActionType.SET_CHILD_BIRTH, convertLocalToUTCDate(date))}
-                        // onChange={(date: any) => console.log(date)}
                         selected={convertUTCToLocalDate(child.dateOfBirth)}
                         minDate={new Date(new Date().getFullYear() - props.event.max_age, 8, 15)}
                         maxDate={new Date(new Date().getFullYear() - props.event.min_age, 8, 15)}
+                        dateFormat="dd/MM/yyyy"
                     />
                 </IonCol>
             </IonRow>
