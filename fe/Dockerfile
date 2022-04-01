@@ -16,6 +16,7 @@ RUN npm i
 COPY ./ /app/
 
 ARG REACT_APP_API_HOST=https://localhost:5000
+ARG REACT_APP_RESULT_REDIRECT=https://localhost:5000
 RUN npm run build
 
 FROM nginx:1.21.0-alpine

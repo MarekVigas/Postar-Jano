@@ -43,7 +43,7 @@ const Results: React.FC<ResultsProps> = (props) => {
                     <IonCol></IonCol>
                     <IonCol size="4">
                         <IonButton onClick={() => {
-                            window.location.replace("https://sbb.sk/leto");
+                            window.location.replace(`${process.env.REACT_APP_RESULT_REDIRECT}`);
                         }}>
                             Zobraziť ďalšie akcie
                         </IonButton>
