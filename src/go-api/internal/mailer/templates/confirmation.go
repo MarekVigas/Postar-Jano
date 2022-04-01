@@ -35,8 +35,8 @@ const (
 	emailTemplatePath                = "EMAIL_TEMPLATE_PATH"
 )
 
-var Confirmation = template.Must(template.New("").Parse(confirmationMail))
 path := os.Getenv(emailTemplatePath)
 dat, err := os.ReadFile(path)
 check(err)
 const confirmationMail = string(dat)
+var Confirmation = template.Must(template.New("").Parse(confirmationMail))
