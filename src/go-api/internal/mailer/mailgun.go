@@ -37,9 +37,12 @@ func NewClient(logger *zap.Logger) (*Client, error) {
 		return nil, errors.New("Mailgun key is not defined.")
 	}
 
+	mg := mailgun.NewMailgun(domain, key)
+	mg.SetAPIBase(mailgun.APIBaseEU)
+
 	return &Client{
 		logger:  logger,
-		mailgun: mailgun.NewMailgun(domain, key),
+		mailgun: mg,
 		sender:  fmt.Sprintf("robot@%s", domain),
 	}, nil
 }
