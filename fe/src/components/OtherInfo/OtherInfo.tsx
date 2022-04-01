@@ -19,7 +19,7 @@ const OtherInfo: React.FC<OtherInfoProps> = (props) => {
             </IonRow>
             <IonRow>
                 <IonCol>
-                    <h4>Navštevovalo vaše dieťa nejaký krúžok, stretko v Salezku počas roka?</h4>
+                    <h4>Navštevovalo vaše dieťa nejaký krúžok, stretko v stredisku počas roka?</h4>
                     <IonRadioGroup value={attended} onIonChange={e => setAttended(e.detail.value)}>
                         <IonItem>
                             <IonLabel>Áno</IonLabel>
