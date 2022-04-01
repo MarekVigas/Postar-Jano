@@ -38,7 +38,7 @@ const defaultState: StepperState = {
             surname: "",
             gender: null,
             city: "",
-            dateOfBirth: new Date(),
+            dateOfBirth: null,
             finishedSchoolYear: null,
             attendedPreviousEvents: null
         },
