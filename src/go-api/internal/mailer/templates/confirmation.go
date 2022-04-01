@@ -1,18 +1,9 @@
 package templates
 
 import (
-    "text/template"
-    "bufio"
-    "fmt"
-    "io"
-    "os"
+	"html/template"
+	"os"
 )
-
-func check(e error) {
-    if e != nil {
-        panic(e)
-    }
-}
 
 type ConfirmationReq struct {
 	Mail          string
@@ -29,14 +20,21 @@ type ConfirmationReq struct {
 	Owner         string
 	Info          string
 	Days          []string
+	RegInfo       string
 }
 
 const (
-	emailTemplatePath                = "EMAIL_TEMPLATE_PATH"
+	emailTemplatePath = "EMAIL_TEMPLATE_PATH"
 )
 
-path := os.Getenv(emailTemplatePath)
-dat, err := os.ReadFile(path)
-check(err)
-const confirmationMail = string(dat)
-var Confirmation = template.Must(template.New("").Parse(confirmationMail))
+var Confirmation *template.Template
+
+// TODO: the errors should be handled properly and the configuration processed in the main.
+func init() {
+	path := os.Getenv(emailTemplatePath)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	Confirmation = template.Must(template.New("").Parse(string(data)))
+}

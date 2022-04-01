@@ -17,6 +17,8 @@ import (
 type Client struct {
 	logger  *zap.Logger
 	mailgun *mailgun.MailgunImpl
+
+	sender string
 }
 
 const (
@@ -38,6 +40,7 @@ func NewClient(logger *zap.Logger) (*Client, error) {
 	return &Client{
 		logger:  logger,
 		mailgun: mailgun.NewMailgun(domain, key),
+		sender:  fmt.Sprintf("robot@%s", domain),
 	}, nil
 }
 
@@ -47,12 +50,12 @@ func (c *Client) ConfirmationMail(ctx context.Context, req *templates.Confirmati
 		return errors.WithStack(err)
 	}
 
-	return c.send(ctx, "robot@mailgun.sbb.sk", fmt.Sprintf("Prijatie prihlášky na %s", req.EventName), b.String(),
+	return c.send(ctx, fmt.Sprintf("Prijatie prihlášky na %s", req.EventName), b.String(),
 		fmt.Sprintf("%s %s <%s>", req.ParentName, req.ParentSurname, req.Mail))
 }
 
-func (c *Client) send(ctx context.Context, sender string, subject string, body string, recipient string) error {
-	msg := c.mailgun.NewMessage(sender, subject, "", recipient)
+func (c *Client) send(ctx context.Context, subject string, body string, recipient string) error {
+	msg := c.mailgun.NewMessage(c.sender, subject, "", recipient)
 	msg.SetHtml(body)
 
 	resp, id, err := c.mailgun.Send(ctx, msg)
