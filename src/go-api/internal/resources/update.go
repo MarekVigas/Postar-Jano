@@ -10,8 +10,8 @@ import (
 
 type UpdateReq struct {
 	Child struct {
-		Name             string    `json:"name"`
-		Surname          string    `json:"surname"`
+		Name             string    `json:"name" validate:"required"`
+		Surname          string    `json:"surname" validate:"required"`
 		Gender           string    `json:"gender"`
 		DateOfBirth      time.Time `json:"dateOfBirth"`
 		FinishedSchool   string    `json:"finishedSchoolYear"`
@@ -30,7 +30,7 @@ type UpdateReq struct {
 	Parent struct {
 		Name    string `json:"name"`
 		Surname string `json:"surname"`
-		Email   string `json:"email"`
+		Email   string `json:"email" validate:"email,required"`
 		Phone   string `json:"phone"`
 	} `json:"parent"`
 

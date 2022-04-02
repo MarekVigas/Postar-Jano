@@ -170,6 +170,7 @@ func (s *RegistrationSuite) TestRegister_OK() {
 		Owner:         "John Doe",
 		Text:          event.OwnerPhone + " " + event.OwnerEmail,
 		Days:          []string{day.Description},
+		RegInfo:       *event.Info,
 	}).Return(nil)
 
 	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
