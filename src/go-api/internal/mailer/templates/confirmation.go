@@ -1,10 +1,5 @@
 package templates
 
-import (
-	"html/template"
-	"os"
-)
-
 type ConfirmationReq struct {
 	Mail          string
 	ParentName    string
@@ -21,20 +16,4 @@ type ConfirmationReq struct {
 	Info          string
 	Days          []string
 	RegInfo       string
-}
-
-const (
-	emailTemplatePath = "EMAIL_TEMPLATE_PATH"
-)
-
-var Confirmation *template.Template
-
-// TODO: the errors should be handled properly and the configuration processed in the main.
-func init() {
-	path := os.Getenv(emailTemplatePath)
-	data, err := os.ReadFile(path)
-	if err != nil {
-		panic(err)
-	}
-	Confirmation = template.Must(template.New("").Parse(string(data)))
 }

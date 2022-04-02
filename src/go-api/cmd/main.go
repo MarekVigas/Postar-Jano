@@ -3,38 +3,32 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/MarekVigas/Postar-Jano/internal/api"
+	"github.com/MarekVigas/Postar-Jano/internal/auth"
+	"github.com/MarekVigas/Postar-Jano/internal/config"
+	"github.com/MarekVigas/Postar-Jano/internal/mailer"
 	"github.com/MarekVigas/Postar-Jano/internal/repository"
 
-	"github.com/MarekVigas/Postar-Jano/internal/auth"
-
-	"github.com/MarekVigas/Postar-Jano/internal/api"
-	"github.com/MarekVigas/Postar-Jano/internal/db"
-	"github.com/MarekVigas/Postar-Jano/internal/mailer"
-
 	_ "github.com/lib/pq"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gopkg.in/tomb.v2"
 )
 
 const (
-	hostEnvKey                = "host"
-	portEnvKey                = "port"
-	defaultPort               = "5000"
 	HTTPServerShutdownTimeout = 5 * time.Second
 )
 
 func Run(logger *zap.Logger, fnc func(*tomb.Tomb) error) error {
-
-	// Start catching signals.
 	var t tomb.Tomb
 
+	// Setup signal handlers.
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
@@ -60,34 +54,16 @@ func Run(logger *zap.Logger, fnc func(*tomb.Tomb) error) error {
 		t.Kill(err)
 	}
 
-	// Wait for all threads to drop dead.
-	err := t.Wait()
-
-	// In case a special exit code is set, exit.
-	if err != nil {
-		os.Exit(1)
-	}
-
-	return nil
+	return t.Wait()
 }
 
-func runHTTP(logger *zap.Logger, handler http.Handler) func(t *tomb.Tomb) error {
+func setupHTTP(cfg *config.Server, logger *zap.Logger, handler http.Handler) func(t *tomb.Tomb) error {
 	return func(t *tomb.Tomb) error {
-		host := os.Getenv(hostEnvKey)
-		if host == "" {
-			host = "0.0.0.0"
-		}
-
-		port := os.Getenv(portEnvKey)
-		if port == "" {
-			port = defaultPort
-		}
-
-		logger = logger.With(zap.String("http_port", port))
+		logger = logger.With(zap.Int("http_port", cfg.Port))
 
 		// Start the server.
 		s := http.Server{
-			Addr:    fmt.Sprintf("%v:%s", host, port),
+			Addr:    fmt.Sprintf("%v:%d", cfg.Host, cfg.Port),
 			Handler: handler,
 		}
 
@@ -122,32 +98,37 @@ func runHTTP(logger *zap.Logger, handler http.Handler) func(t *tomb.Tomb) error 
 	}
 }
 
-func main() {
+func runMain() error {
 	logger, err := zap.NewDevelopment()
 	if err != nil {
-		log.Fatal(err)
+		return errors.Wrap(err, "failed to setup logger")
 	}
 
-	postgres, err := db.Connect()
+	c, err := config.LoadAdminSetting()
 	if err != nil {
-		log.Fatal(err)
+		return errors.Wrap(err, "failed to load config")
 	}
 
-	mailer, err := mailer.NewClient(logger)
+	postgres, err := c.DB.Connect()
 	if err != nil {
-		log.Fatal(err)
+		return errors.Wrap(err, "failed to connect to DB")
 	}
+	defer postgres.Close()
 
-	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
-		log.Fatal("JWT_SECRET missing")
+	mailer, err := mailer.NewClient(&c.Mailer, logger)
+	if err != nil {
+		return errors.Wrap(err, "failed to setup mailer")
 	}
 
 	repo := repository.NewPostgresRepo(postgres)
 
-	server := api.New(logger, repo, auth.NewFromDB(repo), mailer, []byte(jwtSecret))
+	handler := api.New(logger, repo, auth.NewFromDB(repo), mailer, c.JWTSecret)
 
-	if err := Run(logger, runHTTP(logger, server)); err != nil {
-		logger.Fatal("Failed to run server.", zap.Error(err))
+	return Run(logger, setupHTTP(&c.Server, logger, handler))
+}
+
+func main() {
+	if err := runMain(); err != nil {
+		panic(err)
 	}
 }
