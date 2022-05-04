@@ -32,6 +32,7 @@ jobs:
       run: |
         go version
         cd src
+        ls -la
         go get -u golang.org/x/lint/golint
         
     # Run build of the application
