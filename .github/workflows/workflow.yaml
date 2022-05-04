@@ -31,21 +31,27 @@ jobs:
     - name: Install dependencies
       run: |
         go version
+        cd src
         go get -u golang.org/x/lint/golint
         
     # Run build of the application
     - name: Run build
-      run: make build 
+      run: |
+        cd src 
+        make build 
       
     # Run vet & lint on the code
     - name: Run vet & lint
       run: |
+        cd src
         go vet .
         golint .
     
     # Run testing on the code
     - name: Run testing
-      run: make test
+      run: |
+        cd src 
+        make test
     
   # # The "deploy" workflow
   # deploy:
