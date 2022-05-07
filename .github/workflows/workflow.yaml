@@ -23,6 +23,8 @@ jobs:
           POSTGRES_USER: admin
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: leto
+        ports:
+          - 5432:5432
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
