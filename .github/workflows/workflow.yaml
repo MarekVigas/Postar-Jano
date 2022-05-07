@@ -12,9 +12,17 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  build:
+  unit-test:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: leto
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -48,8 +56,16 @@ jobs:
     
     # Run testing on the code
     - name: Run testing
+      env:
+        POSTGRES_HOST: postgres
+        POSTGRES_PORT: 5432
+        POSTGRES_USER: admin
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: leto
+        EMAIL_TEMPLATE_PATH: $GITHUB_WORKSPACE/email_tabor.html
       run: |
         cd src/go-api
+        echo $EMAIL_TEMPLATE_PATH
         make test
     
   # # The "deploy" workflow
