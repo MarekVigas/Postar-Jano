@@ -57,7 +57,7 @@ jobs:
     # Run testing on the code
     - name: Run testing
       env:
-        POSTGRES_HOST: postgres
+        POSTGRES_HOST: localhost
         POSTGRES_PORT: 5432
         POSTGRES_USER: admin
         POSTGRES_PASSWORD: postgres
