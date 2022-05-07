@@ -1,9 +1,16 @@
 import React from 'react';
 import './ChildInfo.scss';
 import { Registration, Gender, ActionType, IEvent } from '../../types/types';
-import DatePicker from 'react-datepicker';
 import { IonGrid, IonRow, IonCol, IonItem, IonLabel, IonInput, IonRadioGroup, IonRadio, IonIcon, IonSelect, IonSelectOption } from '@ionic/react';
-import "react-datepicker/dist/react-datepicker.css";
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { StaticDatePicker } from '@mui/x-date-pickers/StaticDatePicker';
+import TextField from '@mui/material/TextField';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import skLocale from 'date-fns/locale/sk'
+
 
 interface ChildInfoProps {
     registration: Registration,
@@ -14,23 +21,17 @@ interface ChildInfoProps {
 const ChildInfo: React.FC<ChildInfoProps> = (props) => {
     const { child } = props.registration;
 
-    const convertUTCToLocalDate = (date: any) => {
-        if (!date) {
-            return date
-        }
-        date = new Date(date)
-        date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
-        return date
-    }
+    const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
-    const convertLocalToUTCDate = (date: any) => {
-        if (!date) {
-            return date
-        }
-        date = new Date(date)
-        date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
-        return date
-    }
+    const theme = React.useMemo(
+      () =>
+        createTheme({
+          palette: {
+            mode: prefersDarkMode ? 'dark' : 'light',
+          },
+        }),
+      [prefersDarkMode],
+    );
 
     return (
         <IonGrid>
@@ -75,13 +76,21 @@ const ChildInfo: React.FC<ChildInfoProps> = (props) => {
             <IonRow>
                 <IonCol>
                     <h4>Dátum narodenia</h4>
-                    <DatePicker
-                        onChange={(date: any) => props.setValue(ActionType.SET_CHILD_BIRTH, convertLocalToUTCDate(date))}
-                        selected={convertUTCToLocalDate(child.dateOfBirth)}
-                        minDate={new Date(new Date().getFullYear() - props.event.max_age, 8, 15)}
-                        maxDate={new Date(new Date().getFullYear() - props.event.min_age, 8, 15)}
-                        dateFormat="dd/MM/yyyy"
-                    />
+                    <IonInput value={child.dateOfBirth?.toLocaleDateString("sk")} readonly/>
+                    <ThemeProvider theme={theme}>
+                        <CssBaseline />
+                        <LocalizationProvider dateAdapter={AdapterDateFns} locale={skLocale}>
+                        <StaticDatePicker
+                            displayStaticWrapperAs="desktop"
+                            openTo="year"
+                            value={child.dateOfBirth}
+                            onChange={(date: any) => props.setValue(ActionType.SET_CHILD_BIRTH, date)}
+                            renderInput={(params) => <TextField {...params} />}
+                            minDate={new Date(new Date().getFullYear() - props.event.max_age, 0, 1)}
+                            maxDate={new Date(new Date().getFullYear() - props.event.min_age, 8, 15)}
+                        />
+                        </LocalizationProvider>
+                    </ThemeProvider>
                 </IonCol>
             </IonRow>
             <IonRow>
