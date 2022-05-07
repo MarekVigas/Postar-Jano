@@ -62,7 +62,7 @@ jobs:
         POSTGRES_USER: admin
         POSTGRES_PASSWORD: postgres
         POSTGRES_DB: leto
-        EMAIL_TEMPLATE_PATH: '${{ env.GITHUB_WORKSPACE }}/email_tabor.html'
+        EMAIL_TEMPLATE_PATH: '${{ github.workspace }}/email_tabor.html'
       run: |
         cd src/go-api
         echo $EMAIL_TEMPLATE_PATH
