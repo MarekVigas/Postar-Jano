@@ -30,7 +30,7 @@ jobs:
         with:
           context: "{{defaultContext}}:db"
           push: true
-          tags: marekvigas/sbb-leto-db:$GITHUB_REF_NAME
+          tags: marekvigas/sbb-leto-db:${{ github.ref_name }}
 
   be-unit-test:
     # The type of runner that the job will run on
