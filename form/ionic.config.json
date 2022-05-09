@@ -1,7 +1,0 @@
-{
-  "name": "Leto",
-  "integrations": {
-    "capacitor": {}
-  },
-  "type": "react"
-}

@@ -104,7 +104,6 @@ class Stepper extends React.Component<StepperProps, StepperState> {
                 state.registration.child.gender = value;
                 break;
             case ActionType.SET_CHILD_BIRTH:
-                // debugger;
                 state.registration.child.dateOfBirth = value;
                 break;
             case ActionType.SET_CHILD_CITY:
