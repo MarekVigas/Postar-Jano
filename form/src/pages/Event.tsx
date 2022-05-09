@@ -1,10 +1,9 @@
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonLoading } from '@ionic/react';
 import React from 'react';
-import './Event.scss';
 import { RouteComponentProps } from 'react-router-dom';
-import Stepper from '../../components/Stepper/Stepper';
-import { IEvent, Stat } from '../../types/types';
-import { ApiClientContext } from '../../services/apiContext';
+import Stepper from '../components/Stepper/Stepper';
+import { IEvent, Stat } from '../types/types';
+import { ApiClientContext } from '../services/apiContext';
 
 interface Props extends RouteComponentProps<{
     id: string;
@@ -15,7 +14,7 @@ interface State {
     stats: Stat[] | null
 }
 
-class EventComponent extends React.Component<Props, State> {
+class Event extends React.Component<Props, State> {
     static contextType = ApiClientContext;
     context!: React.ContextType<typeof ApiClientContext>;
     timer: NodeJS.Timeout | null;
@@ -100,4 +99,4 @@ class EventComponent extends React.Component<Props, State> {
     }
 };
 
-export default EventComponent;
+export default Event;
