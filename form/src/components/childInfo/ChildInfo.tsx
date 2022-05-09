@@ -21,6 +21,24 @@ interface ChildInfoProps {
 const ChildInfo: React.FC<ChildInfoProps> = (props) => {
     const { child } = props.registration;
 
+    const convertUTCToLocalDate = (date: any) => {
+        if (!date) {
+            return date
+        }
+        date = new Date(date)
+        date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+        return date
+    }
+
+    const convertLocalToUTCDate = (date: any) => {
+        if (!date) {
+            return date
+        }
+        date = new Date(date)
+        date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+        return date
+    }
+
     const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
     const theme = React.useMemo(
@@ -83,8 +101,8 @@ const ChildInfo: React.FC<ChildInfoProps> = (props) => {
                         <StaticDatePicker
                             displayStaticWrapperAs="desktop"
                             openTo="year"
-                            value={child.dateOfBirth}
-                            onChange={(date: any) => props.setValue(ActionType.SET_CHILD_BIRTH, date)}
+                            value={convertUTCToLocalDate(child.dateOfBirth)}
+                            onChange={(date: any) => props.setValue(ActionType.SET_CHILD_BIRTH, convertLocalToUTCDate(date))}
                             renderInput={(params) => <TextField {...params} />}
                             minDate={new Date(new Date().getFullYear() - props.event.max_age, 0, 1)}
                             maxDate={new Date(new Date().getFullYear() - props.event.min_age, 8, 15)}
