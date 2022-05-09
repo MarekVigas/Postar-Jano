@@ -100,7 +100,7 @@ jobs:
           tags: marekvigas/sbb-leto-form:sbb
           build-args: |
             REACT_APP_API_HOST=https://leto.sbb.sk
-            REACT_APP_RESULT_REDIRECT=https://sbb.sk/2022/02/leto-2022/
+            REACT_APP_RESULT_REDIRECT=https://sbb.sk/leto2022/
 
   be-unit-test:
     # The type of runner that the job will run on
