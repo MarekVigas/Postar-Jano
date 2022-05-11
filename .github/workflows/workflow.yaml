@@ -54,7 +54,7 @@ jobs:
           push: true
           tags: marekvigas/sbb-leto-api:${{ github.ref_name }}
 
-  build-form-trnavka:
+  build-fe-trnavka:
     if: contains( github.ref, 'master')
     runs-on: ubuntu-latest
     steps:
@@ -68,17 +68,17 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
-        name: Build and push API
+        name: Build and push FE
         uses: docker/build-push-action@v3
         with:
-          context: "{{defaultContext}}:form"
+          context: "{{defaultContext}}:fe"
           push: true
           tags: marekvigas/sbb-leto-form:trnavka
           build-args: |
             REACT_APP_API_HOST=https://tabory.trnavka.sk
             REACT_APP_RESULT_REDIRECT=https://trnavka.sk/tabory
 
-  build-form-sbb:
+  build-fe-sbb:
     if: contains( github.ref, 'master')
     runs-on: ubuntu-latest
     steps:
@@ -92,10 +92,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
-        name: Build and push API
+        name: Build and push FE
         uses: docker/build-push-action@v3
         with:
-          context: "{{defaultContext}}:form"
+          context: "{{defaultContext}}:fe"
           push: true
           tags: marekvigas/sbb-leto-form:sbb
           build-args: |
