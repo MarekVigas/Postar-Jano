@@ -14,7 +14,6 @@ COPY ./package*.json /app/
 RUN npm ci
 
 COPY ./ /app/
-COPY ./.env /app/.env
 
 RUN npm run build
 
