@@ -95,7 +95,7 @@ func (r *Registration) Create(ctx context.Context, db sqlx.QueryerContext) (*Reg
 type ExtendedRegistration struct {
 	Registration
 	DayNames DayNames `json:"days"     db:"days"`
-	EventID  string   `json:"eventID" db:"event_id"`
+	EventID  int      `json:"eventID" db:"event_id"`
 	Title    *string  `json:"title"    db:"title"`
 }
 
