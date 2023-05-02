@@ -1,15 +1,14 @@
-package db
+package config
 
 import (
 	"bytes"
 	"database/sql"
 	"fmt"
 
-	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
 )
 
-type Config struct {
+type DB struct {
 	User     string `envconfig:"POSTGRES_USER" required:"true"`
 	Password string `envconfig:"POSTGRES_PASSWORD" required:"true"`
 	Host     string `envconfig:"POSTGRES_HOST" required:"true"`
@@ -17,15 +16,7 @@ type Config struct {
 	Database string `envconfig:"POSTGRES_DB" required:"true"`
 }
 
-func Connect() (*sql.DB, error) {
-	var c Config
-	if err := envconfig.Process("", &c); err != nil {
-		return nil, errors.Wrap(err, "failed to load config")
-	}
-	return c.Connect()
-}
-
-func (c *Config) Connect() (*sql.DB, error) {
+func (c *DB) Connect() (*sql.DB, error) {
 	conn, err := c.ConnectionString()
 	if err != nil {
 		return nil, err
@@ -37,7 +28,7 @@ func (c *Config) Connect() (*sql.DB, error) {
 	return db, nil
 }
 
-func (c *Config) ConnectionString() (string, error) {
+func (c *DB) ConnectionString() (string, error) {
 	var b bytes.Buffer
 
 	add := func(key string, val interface{}) {

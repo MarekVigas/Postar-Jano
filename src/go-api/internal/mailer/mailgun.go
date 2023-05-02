@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
+	"html/template"
 
+	"github.com/MarekVigas/Postar-Jano/internal/config"
 	"github.com/MarekVigas/Postar-Jano/internal/mailer/templates"
 
 	"github.com/mailgun/mailgun-go/v4"
@@ -18,38 +19,33 @@ type Client struct {
 	logger  *zap.Logger
 	mailgun *mailgun.MailgunImpl
 
+	confirmation *template.Template
+
 	sender string
 }
 
-const (
-	mailgunDomain = "MAILGUN_DOMAIN"
-	mailgunKey    = "MAILGUN_KEY"
-)
-
-func NewClient(logger *zap.Logger) (*Client, error) {
-	domain := os.Getenv(mailgunDomain)
-	if domain == "" {
-		return nil, errors.New("Mailgun domain is not defined.")
+func NewClient(cfg *config.Mailer, logger *zap.Logger) (*Client, error) {
+	mg := mailgun.NewMailgun(cfg.MailgunDomain, cfg.MailgunKey)
+	if cfg.EUBase {
+		mg.SetAPIBase(mailgun.APIBaseEU)
 	}
 
-	key := os.Getenv(mailgunKey)
-	if key == "" {
-		return nil, errors.New("Mailgun key is not defined.")
+	confirmationTemplate, err := templates.LoadFromFile(cfg.ConfirmationMailTemplate)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to load confirmation template")
 	}
-
-	mg := mailgun.NewMailgun(domain, key)
-	mg.SetAPIBase(mailgun.APIBaseEU)
 
 	return &Client{
-		logger:  logger,
-		mailgun: mg,
-		sender:  fmt.Sprintf("robot@%s", domain),
+		logger:       logger,
+		mailgun:      mg,
+		confirmation: confirmationTemplate,
+		sender:       fmt.Sprintf("robot@%s", cfg.MailgunDomain),
 	}, nil
 }
 
 func (c *Client) ConfirmationMail(ctx context.Context, req *templates.ConfirmationReq) error {
 	var b bytes.Buffer
-	if err := templates.Confirmation.Execute(&b, req); err != nil {
+	if err := c.confirmation.Execute(&b, req); err != nil {
 		return errors.WithStack(err)
 	}
 

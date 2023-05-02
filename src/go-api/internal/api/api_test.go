@@ -13,6 +13,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/MarekVigas/Postar-Jano/internal/config"
+
 	"github.com/kelseyhightower/envconfig"
 
 	"github.com/MarekVigas/Postar-Jano/internal/auth"
@@ -20,7 +22,6 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/MarekVigas/Postar-Jano/internal/api"
-	"github.com/MarekVigas/Postar-Jano/internal/db"
 	"github.com/MarekVigas/Postar-Jano/internal/mailer/templates"
 	"github.com/MarekVigas/Postar-Jano/internal/model"
 	"github.com/MarekVigas/Postar-Jano/internal/repository"
@@ -69,7 +70,7 @@ func (s *CommonSuite) SetupSuite() {
 
 	s.mailer = &SenderMock{}
 
-	var dbConfig db.Config
+	var dbConfig config.DB
 	s.Require().NoError(envconfig.Process("", &dbConfig))
 
 	rootDB, err := dbConfig.Connect()
