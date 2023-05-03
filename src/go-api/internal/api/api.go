@@ -9,15 +9,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-playground/validator/v10"
-
 	"github.com/MarekVigas/Postar-Jano/internal/auth"
 	"github.com/MarekVigas/Postar-Jano/internal/mailer/templates"
 	"github.com/MarekVigas/Postar-Jano/internal/model"
+	"github.com/MarekVigas/Postar-Jano/internal/promo"
 	"github.com/MarekVigas/Postar-Jano/internal/repository"
 	"github.com/MarekVigas/Postar-Jano/internal/resources"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/pkg/errors"
@@ -91,9 +91,11 @@ func New(
 	api.GET("/events/:id", a.EventByID)
 
 	api.GET("/registrations/:token", a.FindRegistration)
+	api.POST("/promo_codes/validate", a.ValidatePromoCode)
 
 	// Admin
 	api.POST("/sign/in", a.SignIn)
+	api.POST("/promo_codes", a.GeneratePromoCode, jwt)
 	api.GET("/registrations", a.ListRegistrations, jwt)
 	api.GET("/registrations/:id", a.FindRegistrationByID, jwt)
 	api.DELETE("/registrations/:id", a.DeleteRegistrationByID, jwt)
@@ -167,6 +169,10 @@ func (api *API) Register(c echo.Context) error {
 				"errors": map[string]interface{}{
 					"event_id": "not active",
 				}})
+		case promo.ErrAlreadyUsed:
+			return c.JSON(http.StatusBadRequest, echo.Map{
+				"error": "Token already used.",
+			})
 		}
 
 		api.logger.Error("Failed to create a registration", zap.Error(err))
@@ -380,6 +386,48 @@ func (api *API) UpdateRegistration(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusAccepted, nil)
+}
+
+func (api *API) GeneratePromoCode(c echo.Context) error {
+	// Decode request
+	var req resources.PromoCodeReq
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+	if errs := req.Validate(); errs != nil {
+		return c.JSON(http.StatusUnprocessableEntity, errs)
+	}
+
+	// Generate token
+	token, err := api.repo.GeneratePromoCode(c.Request().Context(), req.Email, req.RegistrationCount)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, echo.Map{"promo_code": token})
+}
+
+func (api *API) ValidatePromoCode(c echo.Context) error {
+	var req resources.ValidatePromoCodeReq
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+	if errs := req.Validate(); errs != nil {
+		return c.JSON(http.StatusUnprocessableEntity, errs)
+	}
+
+	var res struct {
+		Status                 string `json:"status"`
+		AvailableRegistrations int    `json:"available_registrations"`
+	}
+
+	availableRegistrations, err := api.repo.ValidatePromoCode(c.Request().Context(), req.PromoCode)
+	if err != nil {
+		res.Status = "invalid"
+		return c.JSON(http.StatusOK, res)
+	}
+	res.Status = "ok"
+	res.AvailableRegistrations = availableRegistrations
+	return c.JSON(http.StatusOK, res)
 }
 
 func (api *API) generateToken(owner *model.Owner) (string, error) {

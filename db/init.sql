@@ -35,6 +35,7 @@ CREATE TABLE "public"."events" (
                                    "mail_info" text,
                                    price text NULL,
                                    "active" boolean DEFAULT false NOT NULL,
+                                   "promo_registration" boolean DEFAULT false NOT NULL,
                                    CONSTRAINT "events_id" PRIMARY KEY ("id"),
                                    CONSTRAINT "events_owner_id_fkey" FOREIGN KEY (owner_id) REFERENCES owners(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT DEFERRABLE
 ) WITH (oids = false);
@@ -82,6 +83,7 @@ CREATE TABLE "public"."registrations" (
                                           "problems" text,
                                           "admin_note" text DEFAULT '' NOT NULL,
                                           "discount" integer,
+                                          "promo_code" text,
                                           CONSTRAINT "registrations_id" PRIMARY KEY ("id")
 ) WITH (oids = false);
 
@@ -102,4 +104,14 @@ CREATE TABLE "public"."signups" (
 ) WITH (oids = false);
 
 
+CREATE TABLE "public"."promo_codes" (
+                                    "id"                     SERIAL PRIMARY KEY,
+                                    "created_at"             TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                    "updated_at"             TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                    "email"                  TEXT NOT NULL,
+                                    "key"                   TEXT NOT NULL UNIQUE,
+                                    "available_registrations" integer NOT NULL
+);
+
+CREATE INDEX ix_registration_uuid ON "public"."promo_codes"("key");
 -- 2020-06-05 22:49:50.223171+00

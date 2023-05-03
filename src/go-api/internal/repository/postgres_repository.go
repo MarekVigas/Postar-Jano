@@ -16,7 +16,8 @@ import (
 )
 
 type PostgresRepo struct {
-	db *sqlx.DB
+	db           *sqlx.DB
+	promoManager PromoManager
 }
 
 var (
@@ -24,9 +25,16 @@ var (
 	ErrNotActive = errors.New("Event not active")
 )
 
-func NewPostgresRepo(db *sql.DB) *PostgresRepo {
+type PromoManager interface {
+	GenerateToken(ctx context.Context, tx *sqlx.Tx, email string, registrationCount int) (token string, err error)
+	ValidateToken(ctx context.Context, tx *sqlx.Tx, token string) (code *model.PromoCode, err error)
+	MarkTokenUsage(ctx context.Context, tx *sqlx.Tx, key string) (err error)
+}
+
+func NewPostgresRepo(db *sql.DB, manager PromoManager) *PostgresRepo {
 	return &PostgresRepo{
-		db: sqlx.NewDb(db, "postgres"),
+		db:           sqlx.NewDb(db, "postgres"),
+		promoManager: manager,
 	}
 }
 
@@ -37,6 +45,7 @@ func getAllTables() []string {
 		"owners",
 		"events",
 		"days",
+		"promo_codes",
 	}
 }
 
@@ -75,7 +84,8 @@ func (repo *PostgresRepo) ListEvents(ctx context.Context) ([]model.Event, error)
 				ev.price,
 				ev.mail_info,
 				ev.active,
-			    o.id AS owner_id,
+				ev.promo_registration,
+				o.id AS owner_id,
 				o.name AS owner_name,
 				o.surname AS owner_surname,
 				o.email AS owner_email,
@@ -132,7 +142,8 @@ func (repo *PostgresRepo) FindEvent(ctx context.Context, id int) (*model.Event, 
 				ev.price,
 				ev.mail_info,
 				ev.active,
-			    o.id AS owner_id,
+				ev.promo_registration,
+				o.id AS owner_id,
 				o.name AS owner_name,
 				o.surname AS owner_surname,
 				o.email AS owner_email,
@@ -180,7 +191,7 @@ func (repo *PostgresRepo) Register(ctx context.Context, req *resources.RegisterR
 		return nil, false, err
 	}
 
-	if !event.Active {
+	if !event.Active && !(event.PromoRegistration && req.PromoCode != nil) {
 		return nil, false, ErrNotActive
 	}
 
@@ -190,6 +201,19 @@ func (repo *PostgresRepo) Register(ctx context.Context, req *resources.RegisterR
 	}
 
 	if err := repo.WithTxx(ctx, func(ctx context.Context, tx *sqlx.Tx) error {
+		var promoKey string
+		if req.PromoCode != nil {
+			// Validate token
+			promoCode, err := repo.promoManager.ValidateToken(ctx, tx, *req.PromoCode)
+			if err != nil {
+				return err
+			}
+			promoKey = promoCode.Key
+			// Decrement remaining registrations
+			if err := repo.promoManager.MarkTokenUsage(ctx, tx, promoCode.Key); err != nil {
+				return err
+			}
+		}
 
 		// List stats.
 		stats, err := repo.getStatInternal(ctx, tx, eventID)
@@ -243,6 +267,13 @@ func (repo *PostgresRepo) Register(ctx context.Context, req *resources.RegisterR
 			}
 		}
 
+		newNullString := func(s string) *string {
+			if s != "" {
+				return &s
+			}
+			return nil
+		}
+
 		// Insert into registrations.
 		reg, err := (&model.Registration{
 			Name:               req.Child.Name,
@@ -262,6 +293,7 @@ func (repo *PostgresRepo) Register(ctx context.Context, req *resources.RegisterR
 			Phone:              req.Parent.Phone,
 			Amount:             amount,
 			Token:              token.String(),
+			PromoCode:          newNullString(promoKey),
 		}).Create(ctx, tx)
 		if err != nil {
 			return err
@@ -483,6 +515,36 @@ func (repo *PostgresRepo) FindRegistrationByToken(ctx context.Context, token str
 		return nil, errors.WithStack(sql.ErrNoRows)
 	}
 	return &regs[0], nil
+}
+
+func (repo *PostgresRepo) GeneratePromoCode(ctx context.Context, email string, count int) (token string, err error) {
+	err = repo.WithTxx(ctx, func(ctx context.Context, tx *sqlx.Tx) error {
+		token, err = repo.promoManager.GenerateToken(ctx, tx, email, count)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+func (repo *PostgresRepo) ValidatePromoCode(ctx context.Context, code string) (availableRegistration int, err error) {
+	err = repo.WithTxx(ctx, func(ctx context.Context, tx *sqlx.Tx) error {
+		_, err := repo.promoManager.ValidateToken(ctx, tx, code)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		// lookup promo code by key
+
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	return availableRegistration, nil
 }
 
 func (repo *PostgresRepo) WithTxx(ctx context.Context, f func(context.Context, *sqlx.Tx) error) error {

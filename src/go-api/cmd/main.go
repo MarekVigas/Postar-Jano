@@ -13,6 +13,7 @@ import (
 	"github.com/MarekVigas/Postar-Jano/internal/auth"
 	"github.com/MarekVigas/Postar-Jano/internal/config"
 	"github.com/MarekVigas/Postar-Jano/internal/mailer"
+	"github.com/MarekVigas/Postar-Jano/internal/promo"
 	"github.com/MarekVigas/Postar-Jano/internal/repository"
 
 	_ "github.com/lib/pq"
@@ -120,7 +121,9 @@ func runMain() error {
 		return errors.Wrap(err, "failed to setup mailer")
 	}
 
-	repo := repository.NewPostgresRepo(postgres)
+	promoGenerator := promo.NewGenerator(c.Promo.Secret, c.Promo.ActivationDate, c.Promo.ExpirationDate)
+
+	repo := repository.NewPostgresRepo(postgres, promoGenerator)
 
 	handler := api.New(logger, repo, auth.NewFromDB(repo), mailer, c.JWTSecret)
 

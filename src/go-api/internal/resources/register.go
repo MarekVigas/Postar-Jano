@@ -31,6 +31,7 @@ type RegisterReq struct {
 	Membership struct {
 		AttendedActivities *string `json:"attendedActivities"`
 	} `json:"memberShip"`
-	Notes  string `json:"notes"`
-	DayIDs []int  `json:"days" validate:"required"`
+	Notes     string  `json:"notes"`
+	DayIDs    []int   `json:"days" validate:"required"`
+	PromoCode *string `json:"promo_code"`
 }

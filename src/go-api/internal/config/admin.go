@@ -9,6 +9,7 @@ type AdminSettings struct {
 	Mailer
 	Server
 	DB
+	Promo
 }
 
 func LoadAdminSetting() (*AdminSettings, error) {
