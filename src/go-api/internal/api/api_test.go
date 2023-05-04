@@ -13,23 +13,20 @@ import (
 	"os"
 	"time"
 
-	"github.com/MarekVigas/Postar-Jano/internal/config"
-
-	"github.com/kelseyhightower/envconfig"
-
 	"github.com/MarekVigas/Postar-Jano/internal/auth"
-
-	"github.com/jmoiron/sqlx"
+	"github.com/MarekVigas/Postar-Jano/internal/config"
+	"github.com/MarekVigas/Postar-Jano/internal/promo"
 
 	"github.com/MarekVigas/Postar-Jano/internal/api"
 	"github.com/MarekVigas/Postar-Jano/internal/mailer/templates"
 	"github.com/MarekVigas/Postar-Jano/internal/model"
 	"github.com/MarekVigas/Postar-Jano/internal/repository"
 
-	"github.com/stretchr/testify/mock"
-
+	"github.com/jmoiron/sqlx"
+	"github.com/kelseyhightower/envconfig"
 	"github.com/labstack/echo/v4"
 	_ "github.com/lib/pq"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 )
@@ -37,6 +34,7 @@ import (
 const (
 	loggingEnabled = true
 	jwtSecret      = "top-secret"
+	promoSecret    = "secret"
 	testingDB      = "testing"
 )
 
@@ -44,10 +42,11 @@ type CommonSuite struct {
 	suite.Suite
 	logger *zap.Logger
 
-	api    *api.API
-	db     *sql.DB
-	dbx    *sqlx.DB
-	mailer *SenderMock
+	api          *api.API
+	db           *sql.DB
+	dbx          *sqlx.DB
+	mailer       *SenderMock
+	promoManager *promo.Generator
 }
 
 type SenderMock struct {
@@ -94,6 +93,8 @@ func (s *CommonSuite) SetupSuite() {
 
 	_, err = s.db.Exec(string(dbData))
 	s.Require().NoError(err)
+
+	s.promoManager = promo.NewGenerator([]byte(promoSecret), nil, nil)
 }
 
 func (s *CommonSuite) TearDownSuite() {
@@ -105,7 +106,7 @@ func (s *CommonSuite) TearDownSuite() {
 func (s *CommonSuite) SetupTest() {
 	ctx := context.Background()
 
-	repo := repository.NewPostgresRepo(s.db)
+	repo := repository.NewPostgresRepo(s.db, s.promoManager)
 	s.api = api.New(
 		s.logger,
 		repo,

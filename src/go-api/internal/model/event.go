@@ -8,22 +8,23 @@ import (
 )
 
 type Event struct {
-	ID          int     `json:"id" db:"id"`
-	Title       string  `json:"title" db:"title"`
-	Description string  `json:"description" db:"description"`
-	DateFrom    string  `json:"date_from" db:"date_from"`
-	DateTo      string  `json:"date_to" db:"date_to"`
-	Location    string  `json:"location" db:"location"`
-	MinAge      int     `json:"min_age" db:"min_age"`
-	MaxAge      int     `json:"max_age" db:"max_age"`
-	Info        *string `json:"info" db:"info"`
-	Photo       string  `json:"photo" db:"photo"`
-	Time        *string `json:"time" db:"time"`
-	Price       *string `json:"price" db:"price"`
-	MailInfo    *string `json:"mail_info" db:"mail_info"`
-	Active      bool    `json:"active" db:"active"`
-	EventOwner  `json:"owner"`
-	Days        []Day `json:"days"`
+	ID                int     `json:"id" db:"id"`
+	Title             string  `json:"title" db:"title"`
+	Description       string  `json:"description" db:"description"`
+	DateFrom          string  `json:"date_from" db:"date_from"`
+	DateTo            string  `json:"date_to" db:"date_to"`
+	Location          string  `json:"location" db:"location"`
+	MinAge            int     `json:"min_age" db:"min_age"`
+	MaxAge            int     `json:"max_age" db:"max_age"`
+	Info              *string `json:"info" db:"info"`
+	Photo             string  `json:"photo" db:"photo"`
+	Time              *string `json:"time" db:"time"`
+	Price             *string `json:"price" db:"price"`
+	MailInfo          *string `json:"mail_info" db:"mail_info"`
+	Active            bool    `json:"active" db:"active"`
+	PromoRegistration bool    `json:"promo_registration" db:"promo_registration"`
+	EventOwner        `json:"owner"`
+	Days              []Day `json:"days"`
 }
 
 type EventOwner struct {

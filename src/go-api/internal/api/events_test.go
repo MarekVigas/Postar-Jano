@@ -62,7 +62,10 @@ func (s *EventsSuite) eventToResource(event *model.Event) echo.Map {
 			"photo":   event.OwnerPhoto,
 			"gender":  event.OwnerGender,
 		},
-		"active":    event.Active,
+
+		"active":             event.Active,
+		"promo_registration": event.PromoRegistration,
+
 		"photo":     event.Photo,
 		"info":      nil,
 		"mail_info": nil,
