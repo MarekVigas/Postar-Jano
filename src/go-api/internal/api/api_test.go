@@ -94,7 +94,7 @@ func (s *CommonSuite) SetupSuite() {
 	_, err = s.db.Exec(string(dbData))
 	s.Require().NoError(err)
 
-	s.promoManager = promo.NewGenerator([]byte(promoSecret), nil, nil)
+	s.promoManager = promo.NewGenerator(s.logger, []byte(promoSecret), nil, nil)
 }
 
 func (s *CommonSuite) TearDownSuite() {

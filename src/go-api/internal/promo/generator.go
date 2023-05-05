@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
 const (
@@ -22,13 +23,17 @@ var (
 )
 
 type Generator struct {
+	logger         *zap.Logger
 	promoSecret    []byte
 	activationDate *time.Time
 	expirationDate *time.Time
 }
 
-func NewGenerator(secret []byte, activationDate *time.Time, expirationDate *time.Time) *Generator {
+func NewGenerator(logger *zap.Logger, secret []byte, activationDate *time.Time, expirationDate *time.Time) *Generator {
+	logger.Debug("New promo generator created", zap.Timep("activation_date", activationDate),
+		zap.Timep("expiration_date", expirationDate))
 	return &Generator{
+		logger:         logger,
 		promoSecret:    secret,
 		activationDate: activationDate,
 		expirationDate: expirationDate,
