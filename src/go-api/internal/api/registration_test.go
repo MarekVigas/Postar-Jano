@@ -3,6 +3,7 @@ package api_test
 import (
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -133,9 +134,6 @@ func (s *RegistrationSuite) TestRegister_NotActive_Promo() {
 	)
 	event := s.InsertEvent()
 
-	_, err := s.dbx.Exec("UPDATE events SET active = false, promo_registration = true WHERE id = $1", event.ID)
-	s.Require().NoError(err)
-
 	// Generate promo code
 	req, rec := s.NewRequest(http.MethodPost, "/api/promo_codes", echo.Map{
 		"email":              "test@example.com",
@@ -153,44 +151,62 @@ func (s *RegistrationSuite) TestRegister_NotActive_Promo() {
 
 	day := event.Days[0]
 	birth := time.Now().Format(time.RFC3339)
-	u := fmt.Sprintf("/api/registrations/%d", event.ID)
-	req, rec = s.NewRequest(http.MethodPost, u, echo.Map{
-		"child": echo.Map{
-			"name":               name,
-			"surname":            surname,
-			"gender":             gender,
-			"city":               city,
-			"finishedSchoolYear": school,
-			"dateOfBirth":        birth,
-		},
-		"parent": echo.Map{
-			"name":    pname,
-			"surname": psurname,
-			"email":   email,
-			"phone":   phone,
-		},
-		"days":       []interface{}{day.ID},
-		"promo_code": promoCode,
+	createRegistrationReq := func() (*http.Request, *httptest.ResponseRecorder) {
+		s.mailer.On("ConfirmationMail", mock.Anything, &templates.ConfirmationReq{
+			Mail:          email,
+			ParentName:    pname,
+			ParentSurname: psurname,
+			EventName:     event.Title,
+			Name:          name,
+			Surname:       surname,
+			Pills:         "-",
+			Restrictions:  "-",
+			Info:          "",
+			PhotoURL:      event.OwnerPhoto,
+			Sum:           day.Price,
+			Owner:         "John Doe",
+			Text:          event.OwnerPhone + " " + event.OwnerEmail,
+			Days:          []string{day.Description},
+			RegInfo:       *event.Info,
+		}).Return(nil)
+
+		u := fmt.Sprintf("/api/registrations/%d", event.ID)
+		return s.NewRequest(http.MethodPost, u, echo.Map{
+			"child": echo.Map{
+				"name":               name,
+				"surname":            surname,
+				"gender":             gender,
+				"city":               city,
+				"finishedSchoolYear": school,
+				"dateOfBirth":        birth,
+			},
+			"parent": echo.Map{
+				"name":    pname,
+				"surname": psurname,
+				"email":   email,
+				"phone":   phone,
+			},
+			"days":       []interface{}{day.ID},
+			"promo_code": promoCode,
+		})
+	}
+
+	// Promo registration not active
+	_, err := s.dbx.Exec("UPDATE events SET active = false, promo_registration = false WHERE id = $1", event.ID)
+	s.Require().NoError(err)
+
+	req, rec = createRegistrationReq()
+	s.AssertServerResponseObject(req, rec, http.StatusUnprocessableEntity, func(body echo.Map) {
+		s.Equal(echo.Map{
+			"errors": map[string]interface{}{"event_id": "not active"},
+		}, body)
 	})
 
-	s.mailer.On("ConfirmationMail", mock.Anything, &templates.ConfirmationReq{
-		Mail:          email,
-		ParentName:    pname,
-		ParentSurname: psurname,
-		EventName:     event.Title,
-		Name:          name,
-		Surname:       surname,
-		Pills:         "-",
-		Restrictions:  "-",
-		Info:          "",
-		PhotoURL:      event.OwnerPhoto,
-		Sum:           day.Price,
-		Owner:         "John Doe",
-		Text:          event.OwnerPhone + " " + event.OwnerEmail,
-		Days:          []string{day.Description},
-		RegInfo:       *event.Info,
-	}).Return(nil)
+	// Promo registration active
+	_, err = s.dbx.Exec("UPDATE events SET active = false, promo_registration = true WHERE id = $1", event.ID)
+	s.Require().NoError(err)
 
+	req, rec = createRegistrationReq()
 	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
 		s.NotEmpty(body["token"])
 		delete(body, "token")
@@ -202,25 +218,7 @@ func (s *RegistrationSuite) TestRegister_NotActive_Promo() {
 	// TODO: assert promo code
 
 	// Send another request with the same promo code
-	req, rec = s.NewRequest(http.MethodPost, u, echo.Map{
-		"child": echo.Map{
-			"name":               name,
-			"surname":            surname,
-			"gender":             gender,
-			"city":               city,
-			"finishedSchoolYear": school,
-			"dateOfBirth":        birth,
-		},
-		"parent": echo.Map{
-			"name":    pname,
-			"surname": psurname,
-			"email":   email,
-			"phone":   phone,
-		},
-		"days":       []interface{}{day.ID},
-		"promo_code": promoCode,
-	})
-
+	req, rec = createRegistrationReq()
 	s.AssertServerResponseObject(req, rec, http.StatusBadRequest, func(body echo.Map) {
 		s.Equal(echo.Map{
 			"error": "Token already used.",
