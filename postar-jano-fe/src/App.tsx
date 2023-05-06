@@ -21,9 +21,11 @@ import '@ionic/react/css/display.css';
 
 /* Theme variables */
 import './theme/variables.css';
-import EventPage from './pages/Event/EventPage';
+import EventPage from './pages/Event';
 import { SWRConfig } from 'swr';
 import { SWRFetcher } from './utils/api';
+import EventsPage from './pages/Events';
+import { createContext } from 'react';
 
 setupIonicReact();
 
@@ -32,12 +34,15 @@ axios.defaults.baseURL = `${import.meta.env.VITE_API_HOST}/api`
 const App: React.FC = () => {
   return (
     <IonApp>
-      <SWRConfig value={{fetcher: SWRFetcher}}>
+      <SWRConfig value={{ fetcher: SWRFetcher }}>
         <IonReactRouter>
           <IonSplitPane contentId="main" >
             <IonRouterOutlet id="main">
               <Route path="/" exact={true}>
-                <Redirect to="/event/1" />
+                <Redirect to="/events" />
+              </Route>
+              <Route path="/events" exact={true} >
+                <EventsPage />
               </Route>
               <Route path="/event/:id" exact={true} >
                 <EventPage />

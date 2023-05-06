@@ -1,8 +1,8 @@
 import { IonButtons, IonContent, IonHeader, IonLoading, IonMenuButton, IonPage, IonTitle, IonToolbar } from '@ionic/react';
 import { useParams } from 'react-router';
 import useSWR from 'swr';
-import { IEvent, Stat } from '../../utils/types';
-import Stepper from '../../components/Stepper/Stepper'
+import { IEvent, Stat } from '../utils/types';
+import Stepper from '../components/Stepper/Stepper'
 
 const EventPage: React.FC = () => {
 
