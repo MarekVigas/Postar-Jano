@@ -75,8 +75,8 @@ jobs:
           push: true
           tags: marekvigas/sbb-leto-form:trnavka
           build-args: |
-            REACT_APP_API_HOST=https://tabory.trnavka.sk
-            REACT_APP_RESULT_REDIRECT=https://trnavka.sk/tabory
+            VITE_API_HOST=https://tabory.trnavka.sk
+            VITE_RESULT_REDIRECT=https://trnavka.sk/tabory
 
   build-fe-sbb:
     if: contains( github.ref, 'master')
@@ -99,8 +99,8 @@ jobs:
           push: true
           tags: marekvigas/sbb-leto-form:sbb
           build-args: |
-            REACT_APP_API_HOST=https://leto-api.salezko.sk
-            REACT_APP_RESULT_REDIRECT=https://sbb.sk/leto2023
+            VITE_API_HOST=https://leto-api.salezko.sk
+            VITE_RESULT_REDIRECT=https://sbb.sk/leto2023
 
   build-admin-sbb:
     if: contains( github.ref, 'master')

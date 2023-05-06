@@ -1,10 +1,7 @@
-import React, { PureComponent } from 'react';
-import Rollbar from "rollbar";
-import { Redirect, Route } from 'react-router-dom';
-import { IonApp, IonRouterOutlet } from '@ionic/react';
+import { IonApp, IonRouterOutlet, IonSplitPane, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import Event from './pages/Event/Event';
-import Login from './pages/Login/Login';
+import { Redirect, Route } from 'react-router-dom';
+import axios from 'axios';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -24,36 +21,38 @@ import '@ionic/react/css/display.css';
 
 /* Theme variables */
 import './theme/variables.css';
+import EventPage from './pages/Event';
+import { SWRConfig } from 'swr';
+import { SWRFetcher } from './utils/api';
+import EventsPage from './pages/Events';
+import { createContext } from 'react';
 
-interface Props {}
+setupIonicReact();
 
-interface State {}
+axios.defaults.baseURL = `${import.meta.env.VITE_API_HOST}/api`
 
-class AppComponent extends PureComponent<Props, State> {
-    protected rollbar: Rollbar;
-
-    constructor(props: Props) {
-        super(props);
-        this.rollbar = new Rollbar({
-            accessToken: '6f9a8edc3c4e4c828d763fa498d0952d',
-            captureUncaught: true,
-            captureUnhandledRejections: true,
-            enabled: (process.env.NODE_ENV === 'production'),
-        });
-    }
-    render() {
-        return (
-        <IonApp>
-            <IonReactRouter>
-            <IonRouterOutlet>
-                <Route path="/login" component={Login} exact={true} />
-                <Route path="/event/:id" component={Event} exact={true} />
-                <Route render={() => <Redirect to="/login" />} />
+const App: React.FC = () => {
+  return (
+    <IonApp>
+      <SWRConfig value={{ fetcher: SWRFetcher }}>
+        <IonReactRouter>
+          <IonSplitPane contentId="main" >
+            <IonRouterOutlet id="main">
+              <Route path="/" exact={true}>
+                <Redirect to="/events" />
+              </Route>
+              <Route path="/events" exact={true} >
+                <EventsPage />
+              </Route>
+              <Route path="/event/:id" exact={true} >
+                <EventPage />
+              </Route>
             </IonRouterOutlet>
-            </IonReactRouter>
-        </IonApp>
-        )
-    }
-}
+          </IonSplitPane>
+        </IonReactRouter>
+      </SWRConfig>
+    </IonApp>
+  );
+};
 
-export default AppComponent;
+export default App;

@@ -1,57 +1,53 @@
 {
-  "name": "fe",
-  "version": "0.0.1",
+  "name": "postar-jano-fe",
   "private": true,
-  "dependencies": {
-    "@ionic/react": "^5.0.7",
-    "@ionic/react-router": "^5.0.7",
-    "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^9.4.0",
-    "@testing-library/user-event": "^8.0.3",
-    "@types/jest": "^24.0.25",
-    "@types/node": "^12.12.24",
-    "@types/react": "^16.9.17",
-    "@types/react-dom": "^16.9.4",
-    "@types/react-router": "^5.1.4",
-    "@types/react-router-dom": "^5.1.3",
-    "axios": "^0.21.1",
-    "ionicons": "^5.0.0",
-    "node-sass": "^4.14.1",
-    "react": "^16.13.0",
-    "react-date-picker": "^8.0.1",
-    "react-datepicker": "^4.7.0",
-    "react-dom": "^16.13.0",
-    "react-phone-number-input": "^3.1.23",
-    "react-router": "^5.1.2",
-    "react-router-dom": "^5.1.2",
-    "react-scripts": "3.4.1",
-    "rollbar": "^2.16.2",
-    "typescript": "3.8.3"
-  },
+  "version": "0.0.1",
+  "type": "module",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test.e2e": "cypress run",
+    "test.unit": "vitest",
+    "lint": "eslint"
   },
-  "eslintConfig": {
-    "extends": "react-app"
+  "dependencies": {
+    "@capacitor/app": "5.0.1",
+    "@capacitor/core": "5.0.1",
+    "@capacitor/haptics": "5.0.1",
+    "@capacitor/keyboard": "5.0.1",
+    "@capacitor/status-bar": "5.0.1",
+    "@ionic/react": "^7.0.0",
+    "@ionic/react-router": "^7.0.0",
+    "@types/react-router": "^5.1.20",
+    "@types/react-router-dom": "^5.3.3",
+    "axios": "^1.4.0",
+    "ionicons": "^7.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.43.9",
+    "react-phone-number-input": "^3.2.21",
+    "react-router": "^5.3.4",
+    "react-router-dom": "^5.3.4",
+    "sass": "^1.62.1",
+    "swr": "^2.1.5"
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "description": "An Ionic project",
   "devDependencies": {
-    "@types/react-datepicker": "^4.3.4",
-    "@types/react-phone-number-input": "^3.0.6"
-  }
+    "@capacitor/cli": "5.0.1",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.4.3",
+    "@types/react": "^18.0.27",
+    "@types/react-dom": "^18.0.10",
+    "@vitejs/plugin-legacy": "^4.0.2",
+    "@vitejs/plugin-react": "^3.1.0",
+    "cypress": "^12.7.0",
+    "eslint": "^8.35.0",
+    "eslint-plugin-react": "^7.32.2",
+    "jsdom": "^21.1.0",
+    "typescript": "^4.9.3",
+    "vite": "^4.1.0",
+    "vitest": "^0.29.2"
+  },
+  "description": "An Ionic project"
 }

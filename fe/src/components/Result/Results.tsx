@@ -1,7 +1,6 @@
 import React from 'react';
 import "./Results.scss";
-import load from "../load.png"
-import { Registration, responseStatus } from '../../types/types';
+import { Registration, responseStatus } from '../../utils/types';
 import { IonGrid, IonRow, IonCol, IonButton } from '@ionic/react';
 
 interface ResultsProps {
@@ -20,7 +19,7 @@ const Results: React.FC<ResultsProps> = (props) => {
                 <IonRow>
                     <IonCol></IonCol>
                     <IonCol>
-                        <img src={load} alt="" className="rotate-scale-up" />
+                        {/* <img src={load} alt="" className="rotate-scale-up" /> */}
                     </IonCol>
                     <IonCol></IonCol>
                 </IonRow>
