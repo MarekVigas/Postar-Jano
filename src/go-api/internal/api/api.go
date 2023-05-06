@@ -401,6 +401,7 @@ func (api *API) GeneratePromoCode(c echo.Context) error {
 	// Generate token
 	token, err := api.repo.GeneratePromoCode(c.Request().Context(), req.Email, req.RegistrationCount)
 	if err != nil {
+		api.logger.Error("Failed to generate promo code.", zap.Error(err))
 		return err
 	}
 	return c.JSON(http.StatusOK, echo.Map{"promo_code": token})
@@ -422,8 +423,14 @@ func (api *API) ValidatePromoCode(c echo.Context) error {
 
 	availableRegistrations, err := api.repo.ValidatePromoCode(c.Request().Context(), req.PromoCode)
 	if err != nil {
-		res.Status = "invalid"
-		return c.JSON(http.StatusOK, res)
+		switch errors.Cause(err) {
+		case sql.ErrNoRows, promo.ErrAlreadyUsed, promo.ErrInvalid:
+			res.Status = "invalid"
+			return c.JSON(http.StatusOK, res)
+		default:
+			api.logger.Error("Error during token validation.", zap.Error(err))
+			return err
+		}
 	}
 	res.Status = "ok"
 	res.AvailableRegistrations = availableRegistrations

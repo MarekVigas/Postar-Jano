@@ -10,6 +10,7 @@ import (
 type PromoCodeReq struct {
 	Email             string `json:"email"   validate:"email,required"`
 	RegistrationCount int    `json:"registration_count" validate:"required"`
+	SendEmail         bool   `json:"send_email"`
 }
 
 func (r *PromoCodeReq) Validate() interface{} {

@@ -121,7 +121,12 @@ func runMain() error {
 		return errors.Wrap(err, "failed to setup mailer")
 	}
 
-	promoGenerator := promo.NewGenerator(logger, c.Promo.Secret, c.Promo.ActivationDate, c.Promo.ExpirationDate)
+	var promoGenerator repository.PromoManager
+	if c.Promo.Simple {
+		promoGenerator = promo.NewSimpleGenerator(logger)
+	} else {
+		promoGenerator = promo.NewJWTGenerator(logger, c.Promo.Secret, c.Promo.ActivationDate, c.Promo.ExpirationDate)
+	}
 
 	repo := repository.NewPostgresRepo(postgres, promoGenerator)
 

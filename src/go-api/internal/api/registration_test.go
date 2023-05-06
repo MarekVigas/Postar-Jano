@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/MarekVigas/Postar-Jano/internal/promo"
+
 	"github.com/MarekVigas/Postar-Jano/internal/auth"
 	"github.com/MarekVigas/Postar-Jano/internal/mailer/templates"
 
@@ -120,7 +122,7 @@ func (s *RegistrationSuite) TestRegister_NotActive() {
 	})
 }
 
-func (s *RegistrationSuite) TestRegister_NotActive_Promo() {
+func (s *RegistrationSuite) testRegister_NotActive_Promo() {
 	const (
 		name     = "dano"
 		surname  = "zharmanca"
@@ -224,6 +226,15 @@ func (s *RegistrationSuite) TestRegister_NotActive_Promo() {
 			"error": "Token already used.",
 		}, body)
 	})
+}
+
+func (s *RegistrationSuite) TestRegister_NotActive_Promo_JWT() {
+	s.testRegister_NotActive_Promo()
+}
+
+func (s *RegistrationSuite) TestRegister_NotActive_Promo_Simple() {
+	s.promoManager = promo.NewSimpleGenerator(s.logger)
+	s.testRegister_NotActive_Promo()
 }
 
 func (s *RegistrationSuite) TestRegister_OK() {
