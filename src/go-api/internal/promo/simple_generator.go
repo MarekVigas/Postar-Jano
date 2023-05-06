@@ -2,7 +2,6 @@ package promo
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 
 	"github.com/MarekVigas/Postar-Jano/internal/model"
@@ -17,9 +16,9 @@ type SimpleGenerator struct {
 	logger *zap.Logger
 }
 
-func NewSimpleGenerator(logger *zap.Logger) *JWTGenerator {
+func NewSimpleGenerator(logger *zap.Logger) *SimpleGenerator {
 	logger.Debug("New simple promo generator created")
-	return &JWTGenerator{
+	return &SimpleGenerator{
 		logger: logger,
 	}
 }
@@ -38,8 +37,8 @@ func (g *SimpleGenerator) GenerateToken(ctx context.Context, tx *sqlx.Tx, email 
 
 func (g *SimpleGenerator) ValidateToken(ctx context.Context, tx *sqlx.Tx, token string) (code *model.PromoCode, err error) {
 	match, err := regexp.MatchString("^[a-zA-Z0-9_-]*", token)
-	if err == nil {
-		fmt.Println("Match:", match)
+	if err != nil || !match {
+		return nil, errors.WithStack(ErrInvalid)
 	}
 
 	promoCode, err := model.FindPromoCodeByKey(ctx, tx, token)

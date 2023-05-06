@@ -20,6 +20,7 @@ type Client struct {
 	mailgun *mailgun.MailgunImpl
 
 	confirmation *template.Template
+	promo        *template.Template
 
 	sender string
 }
@@ -35,10 +36,16 @@ func NewClient(cfg *config.Mailer, logger *zap.Logger) (*Client, error) {
 		return nil, errors.Wrap(err, "failed to load confirmation template")
 	}
 
+	promoTemplate, err := templates.LoadFromFile(cfg.PromoMailTemplate)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to load confirmation template")
+	}
+
 	return &Client{
 		logger:       logger,
 		mailgun:      mg,
 		confirmation: confirmationTemplate,
+		promo:        promoTemplate,
 		sender:       fmt.Sprintf("robot@%s", cfg.MailgunDomain),
 	}, nil
 }
@@ -51,6 +58,16 @@ func (c *Client) ConfirmationMail(ctx context.Context, req *templates.Confirmati
 
 	return c.send(ctx, fmt.Sprintf("Prijatie prihlášky na %s", req.EventName), b.String(),
 		fmt.Sprintf("%s %s <%s>", req.ParentName, req.ParentSurname, req.Mail))
+}
+
+func (c *Client) PromoMail(ctx context.Context, req *templates.PromoReq) error {
+	var b bytes.Buffer
+	if err := c.confirmation.Execute(&b, req); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return c.send(ctx, "Prihlasovanie na letne akcie v salezku", b.String(),
+		fmt.Sprintf("<%s>", req.Mail))
 }
 
 func (c *Client) send(ctx context.Context, subject string, body string, recipient string) error {
