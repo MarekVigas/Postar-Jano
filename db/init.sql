@@ -7,7 +7,7 @@ CREATE TABLE "public"."owners" (
                                    "id" integer DEFAULT nextval('owner_id_seq') NOT NULL,
                                    "name" text NOT NULL,
                                    "surname" text NOT NULL,
-                                   "username" text NOT NULL,
+                                   "username" text NOT NULL UNIQUE,
                                    "pass" text NOT NULL,
                                    "email" text NOT NULL,
                                    "phone" text NOT NULL,
