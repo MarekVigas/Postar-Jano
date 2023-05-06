@@ -1,25 +1,18 @@
 import React, { useState } from 'react';
 import './DaySelector.scss';
-import { IEvent, Registration, ActionType, Day, Stat } from '../../utils/types';
+import { IEvent, Registration, Day, Stat } from '../../utils/types';
 import { IonGrid, IonRow, IonCol, IonItem, IonLabel, IonCheckbox, IonProgressBar } from '@ionic/react';
+import { UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 
 interface ChildInfoProps {
     event: IEvent,
-    registration: Registration,
+    register: UseFormRegister<Registration>
+    watch: UseFormWatch<Registration>
     stats: Stat[],
-    setValue: (action: ActionType, value: any) => void,
+    setValue: UseFormSetValue<Registration>
 }
 
-const DaySelector: React.FC<ChildInfoProps> = (props) => {
-    const { days } = props.event;
-    const { stats } = props;
-    const [selected, setSelected] = useState<string[]>([...props.registration.days.map(d => `${d}`)]);
-
-    const handleSetSelected = (days: string[]) => {
-        setSelected(days);
-        props.setValue(ActionType.SET_DAYS, days.map(d => parseInt(d, 10)));
-    }
-
+const DaySelector: React.FC<ChildInfoProps> = ({ event, stats, setValue, watch }) => {
     const capacitytoColor = (capacity: number): string => {
         let color = "primary";
 
@@ -32,6 +25,8 @@ const DaySelector: React.FC<ChildInfoProps> = (props) => {
         }
         return color
     }
+
+    const selected = watch('days')
 
     return (
         <IonGrid>
@@ -46,7 +41,7 @@ const DaySelector: React.FC<ChildInfoProps> = (props) => {
             </IonRow>
             <IonRow>
                 <IonCol>
-                    {days.map((day: Day, i) => (
+                    {event.days.map((day: Day, i) => (
                         <IonGrid className="dayGrid" key={i}>
                             <IonRow>
                                 <IonCol>
@@ -55,18 +50,20 @@ const DaySelector: React.FC<ChildInfoProps> = (props) => {
                                             {day.description}  Kapacita: {(parseFloat(`${(stats[i].boys_count+stats[i].girls_count)/stats[i].capacity}`)*100).toFixed(0)} %
                                         </IonLabel>
                                         <IonCheckbox
-                                            slot="start" 
+                                            slot="start"
                                             value={`${day.id}`} 
-                                            checked={selected.includes(`${day.id}`)}
+                                            checked={selected.includes(day.id)}
                                             disabled={(stats[i].boys_count+stats[i].girls_count)/stats[i].capacity === 1}
                                             onIonChange={e => {
                                                 if (e.detail.checked) {
-                                                    handleSetSelected([...selected, `${day.id}`])
+                                                    setValue('days', [...selected, day.id])
                                                 } else {
-                                                    handleSetSelected([...selected.filter(d => d !== `${day.id}`)])
+                                                    setValue('days', [...selected.filter(id => id !== day.id)])
                                                 }
                                             }}
-                                        />
+                                        >
+                                            
+                                        </IonCheckbox>
                                     </IonItem>
                                 </IonCol>
                             </IonRow>

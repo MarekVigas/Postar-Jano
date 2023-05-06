@@ -7,8 +7,8 @@ import Stepper from '../../components/Stepper/Stepper'
 const EventPage: React.FC = () => {
 
   const { id } = useParams<{ id: string }>();
-  const { data: event, error, isLoading } = useSWR<IEvent>({ url: `/events/${id}` })
-  const { data: stats, statsError, isStatsLoading } = useSWR<Stat[]>({ url: `/stats/${id}` })
+  const { data: event, isLoading } = useSWR<IEvent>({ url: `/events/${id}` })
+  const { data: stats, isLoading: isStatsLoading } = useSWR<Stat[]>({ url: `/stats/${id}` }, { refreshInterval: 5000 })
 
   return (
     <IonPage>
@@ -28,7 +28,7 @@ const EventPage: React.FC = () => {
           </IonToolbar>
         </IonHeader>
         <IonLoading
-          isOpen={isLoading}
+          isOpen={isLoading || isStatsLoading}
           title='Načítavam...'
         />
         {

@@ -7,10 +7,23 @@ import { arrowBackOutline, arrowForwardOutline } from 'ionicons/icons';
 import IntroInfo from '../IntroInfo/IntroInfo';
 import MedicineHealth from '../MedicineHalth/MedicineHealt';
 import ChildInfo from '../childInfo/ChildInfo';
+import ParentInfo from '../ParentInfo/ParentInfo';
+import OtherInfo from '../OtherInfo/OtherInfo';
+import DaySelector from '../DaySelector/DaySelector';
 
 interface StepperProps {
   event: IEvent,
   stats: Stat[]
+}
+
+enum ActivePage {
+  Intro,
+  ChildInfo,
+  MedicineHealth,
+  DaySelector,
+  ParentInfo,
+  OtherInfo,
+  Results
 }
 
 const initialValues = {
@@ -69,6 +82,12 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
     defaultValues: initialValues
   })
 
+  const [pageCount, setPageCount] = useState(5)
+  const [page, setPage] = useState(0)
+  const [activePage, setActivePage] = useState(0)
+  const [canGoBack, setCanGoBack] = useState(true)
+  const [isFull, setIsFull] = useState(false)
+
   useEffect(() => {
     if (event.days.length > 1) {
       setPageCount(pageCount + 1)
@@ -77,13 +96,35 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
 
   }, [event, stats])
 
-  const [pageCount, setPageCount] = useState(5)
-  const [page, setPage] = useState(0)
-  const [canGoBack, setCanGoBack] = useState(true)
-  const [isFull, setIsFull] = useState(false)
+  useEffect(() => {
+    let pages: ActivePage[] = [];
+    if (event.days.length > 1) {
+      pages = [
+        ActivePage.Intro,
+        ActivePage.ChildInfo,
+        ActivePage.MedicineHealth,
+        ActivePage.DaySelector,
+        ActivePage.ParentInfo,
+        ActivePage.OtherInfo,
+        ActivePage.Results,
+      ]
+    } else {
+      pages = [
+        ActivePage.Intro,
+        ActivePage.ChildInfo,
+        ActivePage.MedicineHealth,
+        ActivePage.ParentInfo,
+        ActivePage.OtherInfo,
+        ActivePage.Results,
+      ]
+    }
+    setActivePage(pages[page])
+  }, [page, pageCount, event])
 
   const onSubmit = data => {
-    alert(JSON.stringify(data, null, 2));
+    const dataString = JSON.stringify(data, null, 2)
+    alert(dataString);
+    console.log(dataString)
   };
 
   return (
@@ -102,13 +143,22 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
             <IonCol size="2"></IonCol>
             <IonCol>
               {
-                page === 0 && <IntroInfo event={event} stats={stats} />
+                activePage === ActivePage.Intro && <IntroInfo event={event} stats={stats} />
               }
               {
-                  page === 1 && <ChildInfo register={register} control={control} setValue={setValue}/>
+                activePage === ActivePage.ChildInfo && <ChildInfo register={register} control={control} setValue={setValue}/>
               }
               {
-                page === 2 && <MedicineHealth register={register} setValue={setValue} watch={watch} />
+                activePage === ActivePage.MedicineHealth && <MedicineHealth register={register} setValue={setValue} watch={watch} />
+              }
+              {
+                activePage === ActivePage.DaySelector && <DaySelector register={register} watch={watch} setValue={setValue} event={event} stats={stats} />
+              }
+              {
+                activePage === ActivePage.ParentInfo && <ParentInfo register={register} control={control} watch={watch} setValue={setValue} />
+              }
+              {
+                activePage === ActivePage.OtherInfo && <OtherInfo register={register} />
               }
             </IonCol>
             <IonCol size="2"></IonCol>
@@ -120,11 +170,7 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
             <div className="previous">
               {
                 page > 0 && canGoBack &&
-                <IonButton expand="full" shape="round" onClick={() => {
-                  if (page > 0) {
-                    setPage(page - 1)
-                  }
-                }}>
+                <IonButton expand="full" shape="round" onClick={() => setPage(page - 1)}>
                   <IonIcon icon={arrowBackOutline} />
                   Späť
                 </IonButton>

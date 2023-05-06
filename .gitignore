@@ -18,3 +18,4 @@ potvrdenia/
 certs/
 
 *.env
+postar-jano-fe/.vite/
