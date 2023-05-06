@@ -46,7 +46,7 @@ type CommonSuite struct {
 	db           *sql.DB
 	dbx          *sqlx.DB
 	mailer       *SenderMock
-	promoManager *promo.JWTGenerator
+	promoManager repository.PromoManager
 }
 
 type SenderMock struct {
@@ -54,6 +54,10 @@ type SenderMock struct {
 }
 
 func (m *SenderMock) ConfirmationMail(ctx context.Context, req *templates.ConfirmationReq) error {
+	return m.Called(ctx, req).Error(0)
+}
+
+func (m *SenderMock) PromoMail(ctx context.Context, req *templates.PromoReq) error {
 	return m.Called(ctx, req).Error(0)
 }
 

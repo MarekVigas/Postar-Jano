@@ -29,6 +29,7 @@ const tokenLifetime = 3 * time.Hour
 
 type EmailSender interface {
 	ConfirmationMail(ctx context.Context, req *templates.ConfirmationReq) error
+	PromoMail(ctx context.Context, req *templates.PromoReq) error
 }
 
 type Authenticator interface {
@@ -398,11 +399,22 @@ func (api *API) GeneratePromoCode(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, errs)
 	}
 
+	ctx := c.Request().Context()
 	// Generate token
-	token, err := api.repo.GeneratePromoCode(c.Request().Context(), req.Email, req.RegistrationCount)
+	token, err := api.repo.GeneratePromoCode(ctx, req.Email, req.RegistrationCount)
 	if err != nil {
 		api.logger.Error("Failed to generate promo code.", zap.Error(err))
 		return err
+	}
+	if req.SendEmail {
+		if err := api.sender.PromoMail(ctx, &templates.PromoReq{
+			Mail:                   req.Email,
+			Token:                  token,
+			AvailableRegistrations: req.RegistrationCount,
+		}); err != nil {
+			api.logger.Error("Failed to send a confirmation mail.", zap.Error(err))
+			return err
+		}
 	}
 	return c.JSON(http.StatusOK, echo.Map{"promo_code": token})
 }
