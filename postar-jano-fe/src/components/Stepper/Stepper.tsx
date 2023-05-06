@@ -126,9 +126,6 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
 
   return (
     <form onSubmit={handleSubmit((registration: Registration) => {
-      const dataString = JSON.stringify(registration, null, 2)
-      console.log(dataString)
-
       present({
         message: 'Prihláška bola odoslaná na spracovanie.',
         duration: 2500,
@@ -139,6 +136,13 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
       if (event.days.length === 1) {
         registration.days = [event.days[0].id]
       }
+
+      const { child } = registration
+
+      registration.child.dateOfBirth = `${child.dateOfBirthYear}-${child.dateOfBirthMonth}-${child.dateOfBirthDay}T05:00:00.00Z`
+
+      const dataString = JSON.stringify(registration, null, 2)
+      console.log(dataString)
 
       axios.post<RegistrationRespone>(`/registrations/${event.id}`, registration)
         .then((response) => response.data)
