@@ -188,11 +188,10 @@ func (s *CommonSuite) InsertEvent() *model.Event {
 		Surname:  "Doe",
 		Email:    "john@doe.com",
 		Username: "john@doe.com",
-		Pass:     "bla bla",
 		Phone:    "123",
 		Photo:    "phot.jpg",
 		Gender:   "M",
-	}).Create(ctx, s.dbx)
+	}).Create(ctx, s.dbx, "bla bla")
 	s.Require().NoError(err)
 
 	event := model.Event{

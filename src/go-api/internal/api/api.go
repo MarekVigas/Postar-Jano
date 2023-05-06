@@ -77,6 +77,9 @@ func New(
 				if c.Request().URL.Path == "/api/status" {
 					return true
 				}
+				if strings.HasPrefix(c.Request().URL.Path, "/api/stats") {
+					return true
+				}
 				return false
 			},
 		}),

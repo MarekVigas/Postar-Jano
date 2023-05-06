@@ -13,6 +13,7 @@ require (
 	github.com/lib/pq v1.6.0
 	github.com/mailgun/mailgun-go/v4 v4.1.1
 	github.com/pkg/errors v0.9.1
+	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.5.1
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20200311171314-f7b00557c8c4
