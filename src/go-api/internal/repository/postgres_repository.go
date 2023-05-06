@@ -5,12 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/google/uuid"
-
+	"github.com/MarekVigas/Postar-Jano/internal/model"
 	"github.com/MarekVigas/Postar-Jano/internal/resources"
 
-	"github.com/MarekVigas/Postar-Jano/internal/model"
-
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
@@ -531,20 +529,21 @@ func (repo *PostgresRepo) GeneratePromoCode(ctx context.Context, email string, c
 	return token, nil
 }
 
-func (repo *PostgresRepo) ValidatePromoCode(ctx context.Context, code string) (availableRegistration int, err error) {
-	err = repo.WithTxx(ctx, func(ctx context.Context, tx *sqlx.Tx) error {
-		_, err := repo.promoManager.ValidateToken(ctx, tx, code)
+func (repo *PostgresRepo) ValidatePromoCode(ctx context.Context, code string) (int, error) {
+	var availableRegistrations int
+	err := repo.WithTxx(ctx, func(ctx context.Context, tx *sqlx.Tx) error {
+		promoCode, err := repo.promoManager.ValidateToken(ctx, tx, code)
 		if err != nil {
 			return errors.WithStack(err)
 		}
-		// lookup promo code by key
+		availableRegistrations = promoCode.AvailableRegistrations
 
 		return nil
 	})
 	if err != nil {
 		return 0, err
 	}
-	return availableRegistration, nil
+	return availableRegistrations, nil
 }
 
 func (repo *PostgresRepo) WithTxx(ctx context.Context, f func(context.Context, *sqlx.Tx) error) error {
