@@ -35,7 +35,7 @@ func (g *SimpleGenerator) GenerateToken(ctx context.Context, tx *sqlx.Tx, email 
 	return key, nil
 }
 
-func (g *SimpleGenerator) ValidateToken(ctx context.Context, tx *sqlx.Tx, token string) (code *model.PromoCode, err error) {
+func (g *SimpleGenerator) ValidateToken(ctx context.Context, tx sqlx.QueryerContext, token string) (code *model.PromoCode, err error) {
 	match, err := regexp.MatchString("^[a-zA-Z0-9_-]*", token)
 	if err != nil || !match {
 		return nil, errors.WithStack(ErrInvalid)

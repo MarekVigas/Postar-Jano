@@ -65,7 +65,7 @@ func (g *JWTGenerator) GenerateToken(ctx context.Context, tx *sqlx.Tx, email str
 	return token, nil
 }
 
-func (g *JWTGenerator) ValidateToken(ctx context.Context, tx *sqlx.Tx, token string) (code *model.PromoCode, err error) {
+func (g *JWTGenerator) ValidateToken(ctx context.Context, tx sqlx.QueryerContext, token string) (code *model.PromoCode, err error) {
 	var standardClaims jwt.StandardClaims
 	decodedToken, err := jwt.ParseWithClaims(token, &standardClaims, func(token *jwt.Token) (interface{}, error) {
 		return g.promoSecret, nil

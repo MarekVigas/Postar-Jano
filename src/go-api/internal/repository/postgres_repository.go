@@ -25,7 +25,7 @@ var (
 
 type PromoManager interface {
 	GenerateToken(ctx context.Context, tx *sqlx.Tx, email string, registrationCount int) (token string, err error)
-	ValidateToken(ctx context.Context, tx *sqlx.Tx, token string) (code *model.PromoCode, err error)
+	ValidateToken(ctx context.Context, tx sqlx.QueryerContext, token string) (code *model.PromoCode, err error)
 	MarkTokenUsage(ctx context.Context, tx *sqlx.Tx, key string) (err error)
 }
 
