@@ -18,21 +18,17 @@ const (
 	issuer   = "sbb.sk"
 )
 
-var (
-	ErrAlreadyUsed = errors.New("already used")
-)
-
-type Generator struct {
+type JWTGenerator struct {
 	logger         *zap.Logger
 	promoSecret    []byte
 	activationDate *time.Time
 	expirationDate *time.Time
 }
 
-func NewGenerator(logger *zap.Logger, secret []byte, activationDate *time.Time, expirationDate *time.Time) *Generator {
+func NewJWTGenerator(logger *zap.Logger, secret []byte, activationDate *time.Time, expirationDate *time.Time) *JWTGenerator {
 	logger.Debug("New promo generator created", zap.Timep("activation_date", activationDate),
 		zap.Timep("expiration_date", expirationDate))
-	return &Generator{
+	return &JWTGenerator{
 		logger:         logger,
 		promoSecret:    secret,
 		activationDate: activationDate,
@@ -40,7 +36,7 @@ func NewGenerator(logger *zap.Logger, secret []byte, activationDate *time.Time, 
 	}
 }
 
-func (g *Generator) GenerateToken(ctx context.Context, tx *sqlx.Tx, email string, registrationCount int) (token string, err error) {
+func (g *JWTGenerator) GenerateToken(ctx context.Context, tx *sqlx.Tx, email string, registrationCount int) (token string, err error) {
 	key := uuid.New().String()
 	claims := jwt.StandardClaims{
 		Audience: audience,
@@ -69,16 +65,16 @@ func (g *Generator) GenerateToken(ctx context.Context, tx *sqlx.Tx, email string
 	return token, nil
 }
 
-func (g *Generator) ValidateToken(ctx context.Context, tx *sqlx.Tx, token string) (code *model.PromoCode, err error) {
+func (g *JWTGenerator) ValidateToken(ctx context.Context, tx *sqlx.Tx, token string) (code *model.PromoCode, err error) {
 	var standardClaims jwt.StandardClaims
 	decodedToken, err := jwt.ParseWithClaims(token, &standardClaims, func(token *jwt.Token) (interface{}, error) {
 		return g.promoSecret, nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	if !decodedToken.Valid {
-		return nil, errors.New("Invalid token!")
+		return nil, errors.WithStack(ErrInvalid)
 	}
 
 	promoCode, err := model.FindPromoCodeByKey(ctx, tx, standardClaims.Id)
@@ -91,7 +87,7 @@ func (g *Generator) ValidateToken(ctx context.Context, tx *sqlx.Tx, token string
 	return promoCode, nil
 }
 
-func (g *Generator) MarkTokenUsage(ctx context.Context, tx *sqlx.Tx, key string) (err error) {
+func (g *JWTGenerator) MarkTokenUsage(ctx context.Context, tx *sqlx.Tx, key string) (err error) {
 	if _, err := model.DecrementAvailableRegistrationsPromoCodeByKey(ctx, tx, key); err != nil {
 		return errors.WithStack(err)
 	}

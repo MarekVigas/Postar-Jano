@@ -46,7 +46,7 @@ type CommonSuite struct {
 	db           *sql.DB
 	dbx          *sqlx.DB
 	mailer       *SenderMock
-	promoManager *promo.Generator
+	promoManager *promo.JWTGenerator
 }
 
 type SenderMock struct {
@@ -94,7 +94,7 @@ func (s *CommonSuite) SetupSuite() {
 	_, err = s.db.Exec(string(dbData))
 	s.Require().NoError(err)
 
-	s.promoManager = promo.NewGenerator(s.logger, []byte(promoSecret), nil, nil)
+	s.promoManager = promo.NewJWTGenerator(s.logger, []byte(promoSecret), nil, nil)
 }
 
 func (s *CommonSuite) TearDownSuite() {
