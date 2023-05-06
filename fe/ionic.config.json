@@ -1,5 +1,7 @@
 {
-  "name": "fe",
-  "integrations": {},
-  "type": "react"
+  "name": "postar-jano-fe",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
 }

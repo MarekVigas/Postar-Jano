@@ -1,6 +1,6 @@
 import React from 'react';
 import './IntroInfo.scss';
-import { IEvent, Stat } from '../../types/types';
+import { IEvent, Stat } from '../../utils/types';
 import { calendarOutline, locateOutline, personOutline, logoEuro, manOutline, womanOutline, timeOutline, informationCircleOutline } from 'ionicons/icons';
 import { IonIcon, IonItem, IonAvatar, IonLabel, IonCol, IonGrid, IonRow, IonProgressBar } from '@ionic/react';
 

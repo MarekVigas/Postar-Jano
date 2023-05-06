@@ -19,3 +19,5 @@ certs/
 
 *.env
 postar-jano-fe/.vite/
+
+fe/.vite/
