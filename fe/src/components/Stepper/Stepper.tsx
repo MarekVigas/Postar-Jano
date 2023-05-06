@@ -39,11 +39,11 @@ const initialValues = {
   },
   days: [],
   medicine: {
-    takes: false,
+    takes: null,
     drugs: ""
   },
   health: {
-    hasProblmes: false,
+    hasProblmes: null,
     problems: ""
   },
   parent: {
