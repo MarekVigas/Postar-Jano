@@ -40,7 +40,7 @@ func (m *PromoCode) Create(ctx context.Context, db sqlx.QueryerContext) (*PromoC
 	return &promoCode, nil
 }
 
-func FindPromoCodeByKey(ctx context.Context, tx *sqlx.Tx, key string) (*PromoCode, error) {
+func FindPromoCodeByKey(ctx context.Context, tx sqlx.QueryerContext, key string) (*PromoCode, error) {
 	var code PromoCode
 	if err := sqlx.GetContext(ctx, tx, &code, `SELECT * FROM promo_codes WHERE key = $1`, key); err != nil {
 		return nil, errors.Wrap(err, "failed to find promo_code")

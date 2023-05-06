@@ -398,8 +398,8 @@ func (api *API) GeneratePromoCode(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
-	if errs := req.Validate(); errs != nil {
-		return c.JSON(http.StatusUnprocessableEntity, errs)
+	if errs := validateStruct(&req); errs != nil {
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"errors": errs})
 	}
 
 	ctx := c.Request().Context()
@@ -427,8 +427,8 @@ func (api *API) ValidatePromoCode(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
-	if errs := req.Validate(); errs != nil {
-		return c.JSON(http.StatusUnprocessableEntity, errs)
+	if errs := validateStruct(&req); errs != nil {
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"errors": errs})
 	}
 
 	var res struct {
