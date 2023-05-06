@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import "./Stepper.scss"
-import { Registration, IEvent, Stat, responseStatus } from '../../utils/types';
-import { useForm, Controller } from "react-hook-form";
-import { IonButton, IonCol, IonGrid, IonIcon, IonProgressBar, IonRow } from '@ionic/react';
+import { Registration, IEvent, Stat, RegistrationRespone } from '../../utils/types';
+import { useForm } from "react-hook-form";
+import { IonButton, IonCol, IonGrid, IonIcon, IonProgressBar, IonRow, useIonToast } from '@ionic/react';
 import { arrowBackOutline, arrowForwardOutline } from 'ionicons/icons';
 import IntroInfo from '../IntroInfo/IntroInfo';
 import MedicineHealth from '../MedicineHalth/MedicineHealt';
@@ -10,6 +10,7 @@ import ChildInfo from '../childInfo/ChildInfo';
 import ParentInfo from '../ParentInfo/ParentInfo';
 import OtherInfo from '../OtherInfo/OtherInfo';
 import DaySelector from '../DaySelector/DaySelector';
+import axios from 'axios'
 
 interface StepperProps {
   event: IEvent,
@@ -61,7 +62,7 @@ const validate = () => {
   return true
 }
 
-const eventFull = (stats) => {
+const eventFull = (stats: Stat[]) => {
   let total = 0;
   let sum = 0;
 
@@ -78,7 +79,7 @@ const eventFull = (stats) => {
 
 
 const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
-  const { control, watch, setValue, register, handleSubmit, errors, formState } = useForm<Registration>({
+  const { control, watch, setValue, register, handleSubmit } = useForm<Registration>({
     defaultValues: initialValues
   })
 
@@ -87,6 +88,8 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
   const [activePage, setActivePage] = useState(0)
   const [canGoBack, setCanGoBack] = useState(true)
   const [isFull, setIsFull] = useState(false)
+
+  const [present] = useIonToast()
 
   useEffect(() => {
     if (event.days.length > 1) {
@@ -121,14 +124,69 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
     setActivePage(pages[page])
   }, [page, pageCount, event])
 
-  const onSubmit = data => {
-    const dataString = JSON.stringify(data, null, 2)
-    alert(dataString);
-    console.log(dataString)
-  };
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)} >
+    <form onSubmit={handleSubmit((registration: Registration) => {
+      const dataString = JSON.stringify(registration, null, 2)
+      console.log(dataString)
+
+      present({
+        message: 'Prihláška bola odoslaná na spracovanie.',
+        duration: 2500,
+        color: 'secondary',
+        position: 'top',
+      });
+
+      if (event.days.length === 1) {
+        registration.days = [event.days[0].id]
+      }
+
+      axios.post<RegistrationRespone>(`/registrations/${event.id}`, registration)
+        .then((response) => response.data)
+        .then((res: RegistrationRespone) => {
+          if (res.success) {
+            present({
+              duration: 2000,
+              message: "Prihláška bola úspešne spracovaná",
+              color: "success",
+              position: "top"
+            })
+            setCanGoBack(false)
+          } else if (res.registeredIDs) {
+            if (res.registeredIDs.length !== registration.days.length) {
+              const notRegistred = registration.days.filter(d => !res.registeredIDs?.includes(d))
+              let msg = 'Nepodarilo sa prihlásiť na tieto termíny: '
+              for (const dayId of notRegistred) {
+                const day = event.days.filter(d => d.id === dayId)[0];
+                msg += `${day.description} `
+              }
+              setCanGoBack(true)
+              present({
+                duration: 2000,
+                message: msg,
+                color: "danger",
+                position: "top"
+              })
+            }
+          } else {
+            present({
+              duration: 2000,
+              message: "Došlo k neznámej chybe",
+              color: "danger",
+              position: "top"
+            })
+          }
+        })
+        .catch(async err => {
+          present({
+            duration: 2000,
+            message: "Došlo k neznámej chybe",
+            color: "danger",
+            position: "top"
+          })
+          setCanGoBack(true)
+          console.log(err)
+        })
+    })} >
       <IonGrid>
         <IonRow>
           <IonCol size="2"></IonCol>
@@ -146,7 +204,7 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
                 activePage === ActivePage.Intro && <IntroInfo event={event} stats={stats} />
               }
               {
-                activePage === ActivePage.ChildInfo && <ChildInfo register={register} control={control} setValue={setValue}/>
+                activePage === ActivePage.ChildInfo && <ChildInfo register={register} control={control} setValue={setValue} />
               }
               {
                 activePage === ActivePage.MedicineHealth && <MedicineHealth register={register} setValue={setValue} watch={watch} />
