@@ -58,7 +58,7 @@ const initialValues = {
     attendedActivities: ""
   },
   notes: "",
-  promo_codes: null
+  promo_code: null
 }
 
 const validate = () => {

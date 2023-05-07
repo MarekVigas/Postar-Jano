@@ -51,7 +51,7 @@ export interface Registration {
     parent: Parent;
     memberShip: MemberShip; 
     notes: string; // long string
-    promo_code: string
+    promo_code: string | null
 }
 
 interface MemberShip {
