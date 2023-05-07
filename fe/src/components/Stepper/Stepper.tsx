@@ -264,7 +264,7 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
           <IonCol size="3">
             <div className="next">
               {
-                page < pageCount - 1 && !isFull && (event.active || (promoValidation?.status == "ok" && promoValidation.available_registrations > 0)) &&
+                page < pageCount - 1 && !isFull && (event.active || (event.promo_registration && promoValidation?.status == "ok" && promoValidation.available_registrations > 0)) &&
                 <IonButton expand="full" shape="round" onClick={async () => {
                   if (page < pageCount && validate()) {
                     setPage(page + 1)

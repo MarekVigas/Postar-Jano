@@ -15,6 +15,7 @@ export interface IEvent {
     time: string
     stats: Stat[] | null,
     active: boolean
+    promo_registration: boolean
 }
 
 export interface Stat {
