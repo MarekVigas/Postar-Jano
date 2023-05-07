@@ -51,6 +51,7 @@ export interface Registration {
     parent: Parent;
     memberShip: MemberShip; 
     notes: string; // long string
+    promo_code: string | null
 }
 
 interface MemberShip {
@@ -117,6 +118,11 @@ export interface RegistrationRespone {
     success: boolean,
     registeredIDs?: number[],
     token: string
+}
+
+export interface PromoResponse {
+    status: 'invalid' | 'ok'
+    available_registrations: number
 }
 
 

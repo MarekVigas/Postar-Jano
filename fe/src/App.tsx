@@ -25,32 +25,41 @@ import EventPage from './pages/Event';
 import { SWRConfig } from 'swr';
 import { SWRFetcher } from './utils/api';
 import EventsPage from './pages/Events';
-import { createContext } from 'react';
+import {
+  StateMachineProvider,
+  createStore
+} from 'little-state-machine';
 
 setupIonicReact();
+
+createStore({
+  promo: null,
+});
 
 axios.defaults.baseURL = `${import.meta.env.VITE_API_HOST}/api`
 
 const App: React.FC = () => {
   return (
     <IonApp>
-      <SWRConfig value={{ fetcher: SWRFetcher }}>
-        <IonReactRouter>
-          <IonSplitPane contentId="main" >
-            <IonRouterOutlet id="main">
-              <Route path="/" exact={true}>
-                <Redirect to="/events" />
-              </Route>
-              <Route path="/events" exact={true} >
-                <EventsPage />
-              </Route>
-              <Route path="/event/:id" exact={true} >
-                <EventPage />
-              </Route>
-            </IonRouterOutlet>
-          </IonSplitPane>
-        </IonReactRouter>
-      </SWRConfig>
+      <StateMachineProvider>
+        <SWRConfig value={{ fetcher: SWRFetcher }}>
+          <IonReactRouter>
+            <IonSplitPane contentId="main" >
+              <IonRouterOutlet id="main">
+                <Route path="/" exact={true}>
+                  <Redirect to="/events" />
+                </Route>
+                <Route path="/events" exact={true} >
+                  <EventsPage />
+                </Route>
+                <Route path="/event/:id" exact={true} >
+                  <EventPage />
+                </Route>
+              </IonRouterOutlet>
+            </IonSplitPane>
+          </IonReactRouter>
+        </SWRConfig>
+      </StateMachineProvider>
     </IonApp>
   );
 };
