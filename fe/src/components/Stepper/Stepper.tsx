@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import "./Stepper.scss"
-import { Registration, IEvent, Stat, RegistrationRespone } from '../../utils/types';
+import { Registration, IEvent, Stat, RegistrationRespone, PromoResponse } from '../../utils/types';
 import { useForm } from "react-hook-form";
 import { IonButton, IonCol, IonGrid, IonIcon, IonProgressBar, IonRow, useIonToast } from '@ionic/react';
 import { arrowBackOutline, arrowForwardOutline } from 'ionicons/icons';
@@ -11,6 +11,8 @@ import ParentInfo from '../ParentInfo/ParentInfo';
 import OtherInfo from '../OtherInfo/OtherInfo';
 import DaySelector from '../DaySelector/DaySelector';
 import axios from 'axios'
+import { useStateMachine } from 'little-state-machine';
+import useSWR from 'swr';
 
 interface StepperProps {
   event: IEvent,
@@ -55,7 +57,8 @@ const initialValues = {
   memberShip: {
     attendedActivities: ""
   },
-  notes: ""
+  notes: "",
+  promo_codes: null
 }
 
 const validate = () => {
@@ -88,8 +91,18 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
   const [activePage, setActivePage] = useState(0)
   const [canGoBack, setCanGoBack] = useState(true)
   const [isFull, setIsFull] = useState(false)
+  const { state: { promo } } = useStateMachine()
 
   const [present] = useIonToast()
+
+  const { data: promoValidation } = useSWR<PromoResponse>(promo ? {
+    url: `promo_codes/validate`, config: {
+      method: 'POST',
+      data: {
+        promo_code: promo
+      }
+    }
+  }: null)
 
   useEffect(() => {
     if (event.days.length > 1) {
@@ -133,13 +146,22 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
         position: 'top',
       });
 
+      setPage(page + 1)
+
       if (event.days.length === 1) {
         registration.days = [event.days[0].id]
       }
 
       const { child } = registration
 
-      registration.child.dateOfBirth = `${child.dateOfBirthYear}-${child.dateOfBirthMonth}-${child.dateOfBirthDay}T05:00:00.00Z`
+      const padded_month = `${child.dateOfBirthMonth}`.padStart(2, '0')
+      const padded_day = `${child.dateOfBirthDay}`.padStart(2, '0')
+
+      registration.child.dateOfBirth = `${child.dateOfBirthYear}-${padded_month}-${padded_day}T05:00:00.00Z`
+
+      if (promo) {
+        registration.promo_code = promo
+      }
 
       const dataString = JSON.stringify(registration, null, 2)
       console.log(dataString)
@@ -242,7 +264,7 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
           <IonCol size="3">
             <div className="next">
               {
-                page < pageCount - 1 && !isFull && event.active &&
+                page < pageCount - 1 && !isFull && (event.active || (promoValidation?.status == "ok" && promoValidation.available_registrations > 0)) &&
                 <IonButton expand="full" shape="round" onClick={async () => {
                   if (page < pageCount && validate()) {
                     setPage(page + 1)

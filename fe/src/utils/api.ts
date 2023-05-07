@@ -1,24 +1,11 @@
 import axios from "axios";
+import { AxiosRequestConfig } from 'axios'
 type FetcherProps = {
   url: string,
-  args: any,
+  config: AxiosRequestConfig,
 }
 
-export const SWRFetcher = async ({ url, args }: FetcherProps) => {
-  return axios(url, {
-    params: args
-  })
+export const SWRFetcher = async ({ url, config }: FetcherProps) => {
+  return axios(url, config)
   .then((r) => r.data)
 };
-
-// register(id: number, registration: Registration): Promise<RegistrationRespone> {
-//   return this.client.post<RegistrationRespone>(`/registrations/${id}`, registration);
-// }
-
-// stats(id: number): Promise<Stat[]> {
-//   return this.client.get<Stat[]>(`/stats/${id}`);
-// }
-
-// get(id: number): Promise<IEvent> {
-//   return this.client.get<IEvent>(`/events/${id}`);
-// }

@@ -1,9 +1,30 @@
 import { IonButtons, IonContent, IonHeader, IonItem, IonLoading, IonMenuButton, IonPage, IonTitle, IonToolbar } from '@ionic/react';
 import useSWR from 'swr';
-import { IEvent, Stat } from '../utils/types';
+import { IEvent } from '../utils/types';
+import queryString from 'query-string'
+import { useLocation } from 'react-router-dom'
+import { useEffect } from 'react';
+import { useStateMachine } from 'little-state-machine'
+
+const updatePromoCode = (state: any, payload: string) => {
+  return {
+    ...state,
+    promo: payload
+  }
+}
 
 const EventsPage: React.FC = () => {
   const { data: events, isLoading } = useSWR<IEvent[]>({ url: `/events` })
+  const { search } = useLocation()
+  const { promo } = queryString.parse(search)
+  const { actions } = useStateMachine({ updatePromoCode })
+
+  useEffect(() => {
+    if (promo) {
+      console.log('set promo')
+      actions.updatePromoCode(promo as string)
+    }
+  }, [promo])
 
   return (
     <IonPage>
@@ -27,8 +48,8 @@ const EventsPage: React.FC = () => {
           title='Načítavam...'
         />
         {
-          events && events.map((event) => (
-            <IonItem>
+          events && events.map((event, i) => (
+            <IonItem key={i} href={`/event/${event.id}`}>
               {event.title}
             </IonItem>
           )
