@@ -33,14 +33,14 @@ const EventsPage: React.FC = () => {
           <IonButtons slot="start">
             <IonMenuButton />
           </IonButtons>
-          <IonTitle>Ivo Akcie</IonTitle>
+          <IonTitle>Salezko</IonTitle>
         </IonToolbar>
       </IonHeader>
 
       <IonContent fullscreen>
         <IonHeader collapse="condense">
           <IonToolbar>
-            <IonTitle size="large">Ivo Akcie</IonTitle>
+            <IonTitle size="large">Salezko</IonTitle>
           </IonToolbar>
         </IonHeader>
         <IonLoading
