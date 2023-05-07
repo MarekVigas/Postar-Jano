@@ -62,7 +62,7 @@ func (c *Client) ConfirmationMail(ctx context.Context, req *templates.Confirmati
 
 func (c *Client) PromoMail(ctx context.Context, req *templates.PromoReq) error {
 	var b bytes.Buffer
-	if err := c.confirmation.Execute(&b, req); err != nil {
+	if err := c.promo.Execute(&b, req); err != nil {
 		return errors.WithStack(err)
 	}
 
