@@ -58,8 +58,8 @@ const ChildInfo: React.FC<ChildInfoProps> = ({ register, control, setValue }) =>
         <IonCol>
           <h4>Dátum narodenia</h4>
           <IonItem>
-            <IonInput {...register('child.dateOfBirthDay', { required: true })} label="Deň" type='number' labelPlacement="stacked" placeholder="23" size={4}></IonInput>
-            <IonInput {...register('child.dateOfBirthMonth', { required: true })} label="Mesiac" type='number' labelPlacement="stacked" placeholder="5" size={4}></IonInput>
+            <IonInput {...register('child.dateOfBirthDay', { required: true })} label="Deň" type='number' min={1} max={31} labelPlacement="stacked" placeholder="23" size={4}></IonInput>
+            <IonInput {...register('child.dateOfBirthMonth', { required: true })} label="Mesiac" type='number' min={1} max={12} labelPlacement="stacked" placeholder="5" size={4}></IonInput>
             <IonInput {...register('child.dateOfBirthYear', { required: true })} label="Rok" type='number' labelPlacement="stacked" placeholder="2022" size={8}></IonInput>
           </IonItem>
         </IonCol>
