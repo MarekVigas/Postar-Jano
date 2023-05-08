@@ -71,7 +71,11 @@ func (g *JWTGenerator) ValidateToken(ctx context.Context, tx sqlx.QueryerContext
 		return g.promoSecret, nil
 	})
 	if err != nil {
-		return nil, errors.WithStack(ErrInvalid)
+		var validationErr *jwt.ValidationError
+		if errors.As(err, &validationErr) {
+			return nil, errors.WithStack(ErrInvalid)
+		}
+		return nil, errors.WithStack(err)
 	}
 	if !decodedToken.Valid {
 		return nil, errors.WithStack(ErrInvalid)
