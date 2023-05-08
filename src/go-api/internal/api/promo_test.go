@@ -29,7 +29,7 @@ func NewPromoSuite(promoSetup func(commonSuite *CommonSuite) repository.PromoMan
 
 func (s *PromoSuite) SetupSuite() {
 	s.CommonSuite.SetupSuite()
-	s.promoSetup(&s.CommonSuite)
+	s.promoManager = s.promoSetup(&s.CommonSuite)
 }
 
 func (s *PromoSuite) TestGeneratePromoCode_Unauthorized() {
@@ -97,19 +97,43 @@ func (s *PromoSuite) TestGeneratePromoCode_OK() {
 }
 
 func (s *PromoSuite) TestValidatePromoCode_UnprocessableEntity() {
-
+	req, rec := s.NewRequest(http.MethodPost, "/api/promo_codes/validate", echo.Map{})
+	s.AssertServerResponseObject(req, rec, http.StatusUnprocessableEntity, func(body echo.Map) {
+		s.Equal(echo.Map{"errors": map[string]interface{}{
+			"promo_code": "missing",
+		}}, body)
+	})
 }
 
 func (s *PromoSuite) TestValidatePromoCode_NonExisting() {
-
+	req, rec := s.NewRequest(http.MethodPost, "/api/promo_codes/validate", echo.Map{
+		"promo_code": "XYZ",
+	})
+	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
+		s.Equal(echo.Map{"status": "invalid", "available_registrations": float64(0)}, body)
+	})
 }
 
 func (s *PromoSuite) TestValidatePromoCode_AlreadyUsed() {
-
+	token, err := s.promoManager.GenerateToken(context.Background(), s.dbx, "test@example.com", 0)
+	s.Require().NoError(err)
+	req, rec := s.NewRequest(http.MethodPost, "/api/promo_codes/validate", echo.Map{
+		"promo_code": token,
+	})
+	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
+		s.Equal(echo.Map{"status": "invalid", "available_registrations": float64(0)}, body)
+	})
 }
 
 func (s *PromoSuite) TestValidatePromoCode_Valid() {
-
+	token, err := s.promoManager.GenerateToken(context.Background(), s.dbx, "test@example.com", 1)
+	s.Require().NoError(err)
+	req, rec := s.NewRequest(http.MethodPost, "/api/promo_codes/validate", echo.Map{
+		"promo_code": token,
+	})
+	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
+		s.Equal(echo.Map{"status": "ok", "available_registrations": float64(1)}, body)
+	})
 }
 
 func TestSimplePromoSuite(t *testing.T) {
