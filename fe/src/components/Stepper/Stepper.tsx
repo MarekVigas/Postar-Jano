@@ -221,7 +221,7 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
           </IonCol>
           <IonCol size="2"></IonCol>
         </IonRow>
-        <IonRow><pre>{JSON.stringify(watch(), null, 2)}</pre></IonRow>
+        {/* <IonRow><pre>{JSON.stringify(watch(), null, 2)}</pre></IonRow> */}
         {
           event && stats &&
           <IonRow>
