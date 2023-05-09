@@ -71,7 +71,7 @@ const EventsPage: React.FC = () => {
             </IonCardHeader>
             <IonCardContent>
               <IonList>
-                {events.filter(event => event.title.toLowerCase() !== 'test').map((event) => (
+                {events.filter(event => !event.title.toLowerCase().includes('test')).map((event) => (
                   <IonItem href={`/event/${event.id}`} key={event.id}>
                     <IonThumbnail slot="start">
                       <img alt={`${event.title} photo`} src={event.photo} />

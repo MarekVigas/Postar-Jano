@@ -1,13 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Registration } from '../../utils/types';
 import { IonGrid, IonRow, IonCol, IonItem, IonInput } from '@ionic/react';
-import { UseFormRegister } from 'react-hook-form';
+import { UseFormRegister, UseFormTrigger } from 'react-hook-form';
 
 interface OtherInfoProps {
   register: UseFormRegister<Registration>
+  trigger: UseFormTrigger<Registration>
 }
 
-const OtherInfo: React.FC<OtherInfoProps> = ({ register }) => {
+const OtherInfo: React.FC<OtherInfoProps> = ({ register, trigger }) => {
+  useEffect(() => {
+    trigger()
+  }, [])
+
   return (
     <IonGrid>
       <IonRow>
