@@ -31,7 +31,7 @@ const schema = yup.object().shape({
     dateOfBirthYear: yup.number().min(1990).max(2018).required().label('Rok narodenia')
   }),
   medicine: yup.object().shape({
-    drugs: yup.boolean().required().label('Lieky'),
+    takes: yup.boolean().required().label('Lieky')
   }),
   health: yup.object().shape({
     hasProblmes: yup.boolean().required().label('Zdravotné ťažkosti')
@@ -129,7 +129,7 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
   ].map(error => error?.message).filter(e => e)
 
   const MedicineHealthErrorMessages = [
-    medicineErrors?.drugs,
+    medicineErrors?.takes,
     healthErrors?.hasProblmes
   ].map(error => error?.message).filter(e => e)
 
