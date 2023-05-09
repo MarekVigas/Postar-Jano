@@ -1,17 +1,18 @@
 import React from 'react';
 import { Registration, Gender, ActionType, IEvent } from '../../utils/types';
 import { IonGrid, IonRow, IonCol, IonItem, IonLabel, IonInput, IonRadioGroup, IonRadio, IonIcon, IonSelect, IonSelectOption } from '@ionic/react';
-import { Control, Controller, UseFormRegister, UseFormSetValue } from 'react-hook-form';
+import { Control, Controller, UseFormGetValues, UseFormRegister, UseFormSetValue } from 'react-hook-form';
 import { RadioGroup } from '../from/radio';
 import { Select } from '../from/select';
 
 interface ChildInfoProps {
   register: UseFormRegister<Registration>,
   setValue: UseFormSetValue<Registration>,
+  getValues: UseFormGetValues<Registration>
   control: Control<Registration>
 }
 
-const ChildInfo: React.FC<ChildInfoProps> = ({ register, control, setValue }) => {
+const ChildInfo: React.FC<ChildInfoProps> = ({ register, control, setValue, getValues }) => {
   return (
     <IonGrid>
       <IonRow>
@@ -50,6 +51,7 @@ const ChildInfo: React.FC<ChildInfoProps> = ({ register, control, setValue }) =>
               name="child.gender"
               register={register}
               setValue={setValue}
+              getValues={getValues}
             />
           </IonItem>
         </IonCol>
@@ -114,6 +116,7 @@ const ChildInfo: React.FC<ChildInfoProps> = ({ register, control, setValue }) =>
               name="child.attendedPreviousEvents"
               register={register}
               setValue={setValue}
+              getValues={getValues}
             />
           </IonItem>
         </IonCol>

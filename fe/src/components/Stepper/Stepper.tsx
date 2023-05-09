@@ -82,7 +82,7 @@ const eventFull = (stats: Stat[]) => {
 
 
 const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
-  const { control, watch, setValue, register, handleSubmit } = useForm<Registration>({
+  const { control, watch, setValue, register, handleSubmit, getValues } = useForm<Registration>({
     defaultValues: initialValues
   })
 
@@ -106,7 +106,7 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
 
   useEffect(() => {
     if (event.days.length > 1) {
-      setPageCount(pageCount + 1)
+      setPageCount(6)
     }
     setIsFull(eventFull(stats))
 
@@ -221,6 +221,7 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
           </IonCol>
           <IonCol size="2"></IonCol>
         </IonRow>
+        {/* <IonRow><pre>{JSON.stringify(watch(), null, 2)}</pre></IonRow> */}
         {
           event && stats &&
           <IonRow>
@@ -230,10 +231,10 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
                 activePage === ActivePage.Intro && <IntroInfo event={event} stats={stats} />
               }
               {
-                activePage === ActivePage.ChildInfo && <ChildInfo register={register} control={control} setValue={setValue} />
+                activePage === ActivePage.ChildInfo && <ChildInfo register={register} control={control} setValue={setValue} getValues={getValues} />
               }
               {
-                activePage === ActivePage.MedicineHealth && <MedicineHealth register={register} setValue={setValue} watch={watch} />
+                activePage === ActivePage.MedicineHealth && <MedicineHealth register={register} setValue={setValue} watch={watch} getValues={getValues} />
               }
               {
                 activePage === ActivePage.DaySelector && <DaySelector register={register} watch={watch} setValue={setValue} event={event} stats={stats} />

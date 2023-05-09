@@ -1,16 +1,17 @@
 import React from 'react';
 import { IonGrid, IonRow, IonCol, IonItem, IonLabel, IonInput, IonRadioGroup, IonRadio } from '@ionic/react';
-import { UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import { UseFormGetValues, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import { Registration } from '../../utils/types';
 import { RadioGroup } from '../from/radio';
 
 interface MedicineHealthProps {
   register: UseFormRegister<Registration>
   setValue: UseFormSetValue<Registration>
+  getValues: UseFormGetValues<Registration>
   watch: UseFormWatch<Registration>
 }
 
-const MedicineHealth: React.FC<MedicineHealthProps> = ({ register, setValue, watch }) => {
+const MedicineHealth: React.FC<MedicineHealthProps> = ({ register, setValue, watch, getValues }) => {
 
   return (
     <IonGrid>
@@ -27,6 +28,7 @@ const MedicineHealth: React.FC<MedicineHealthProps> = ({ register, setValue, wat
               options={[{ value: false, label: 'Nie' }, { value: true, label: 'Áno' }]}
               name="medicine.takes"
               register={register}
+              getValues={getValues}
               setValue={setValue}
             />
           </IonItem>
@@ -55,6 +57,7 @@ const MedicineHealth: React.FC<MedicineHealthProps> = ({ register, setValue, wat
               name="health.hasProblmes"
               register={register}
               setValue={setValue}
+              getValues={getValues}
             />
           </IonItem>
         </IonCol>
