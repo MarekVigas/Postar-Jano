@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import "./Stepper.scss"
 import { Registration, IEvent, Stat, RegistrationRespone, PromoResponse } from '../../utils/types';
 import { useForm } from "react-hook-form";
-import { IonButton, IonCol, IonGrid, IonIcon, IonProgressBar, IonRow, useIonToast } from '@ionic/react';
+import { IonButton, IonCol, IonGrid, IonIcon, IonProgressBar, IonRow, useIonRouter, useIonToast } from '@ionic/react';
 import { arrowBackOutline, arrowForwardOutline } from 'ionicons/icons';
 import IntroInfo from '../IntroInfo/IntroInfo';
 import MedicineHealth from '../MedicineHalth/MedicineHealt';
@@ -86,6 +86,8 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
     defaultValues: initialValues
   })
 
+  const router = useIonRouter()
+
   const [pageCount, setPageCount] = useState(5)
   const [page, setPage] = useState(0)
   const [activePage, setActivePage] = useState(0)
@@ -139,13 +141,6 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
 
   return (
     <form onSubmit={handleSubmit((registration: Registration) => {
-      present({
-        message: 'Prihláška bola odoslaná na spracovanie.',
-        duration: 2500,
-        color: 'secondary',
-        position: 'top',
-      });
-
       setPage(page + 1)
 
       if (event.days.length === 1) {
@@ -177,6 +172,7 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
               position: "top"
             })
             setCanGoBack(false)
+            router.push('/events')
           } else if (res.registeredIDs) {
             if (res.registeredIDs.length !== registration.days.length) {
               const notRegistred = registration.days.filter(d => !res.registeredIDs?.includes(d))
@@ -200,6 +196,7 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
               color: "danger",
               position: "top"
             })
+            router.push('/events')
           }
         })
         .catch(async err => {
