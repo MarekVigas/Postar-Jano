@@ -289,7 +289,7 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
                 activePage === ActivePage.Intro && <IntroInfo event={event} stats={stats} />
               }
               {
-                activePage === ActivePage.ChildInfo && <ChildInfo register={register} control={control} setValue={setValue} getValues={getValues} errors={errors} />
+                activePage === ActivePage.ChildInfo && <ChildInfo register={register} control={control} setValue={setValue} getValues={getValues} />
               }
               {
                 activePage === ActivePage.MedicineHealth && <MedicineHealth register={register} setValue={setValue} watch={watch} getValues={getValues} />
