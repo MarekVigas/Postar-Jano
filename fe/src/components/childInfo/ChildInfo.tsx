@@ -25,7 +25,7 @@ const ChildInfo: React.FC<ChildInfoProps> = ({ register, control, setValue, getV
           <h4>Meno</h4>
           <IonItem>
             <IonInput
-              {...register('child.name', { required: true })}
+              {...register('child.name')}
               placeholder='Jozef'
             />
           </IonItem>

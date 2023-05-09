@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import "./Stepper.scss"
 import { Registration, IEvent, Stat, RegistrationRespone, PromoResponse } from '../../utils/types';
 import { useForm } from "react-hook-form";
-import { IonButton, IonCol, IonGrid, IonIcon, IonProgressBar, IonRow, useIonRouter, useIonToast } from '@ionic/react';
+import { IonButton, IonCol, IonGrid, IonIcon, IonItem, IonProgressBar, IonRow, useIonRouter, useIonToast } from '@ionic/react';
 import { arrowBackOutline, arrowForwardOutline } from 'ionicons/icons';
 import IntroInfo from '../IntroInfo/IntroInfo';
 import MedicineHealth from '../MedicineHalth/MedicineHealt';
@@ -13,6 +13,37 @@ import DaySelector from '../DaySelector/DaySelector';
 import axios from 'axios'
 import { useStateMachine } from 'little-state-machine';
 import useSWR from 'swr';
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { sk } from 'yup-locales';
+
+yup.setLocale(sk)
+
+const schema = yup.object().shape({
+  child: yup.object().shape({
+    name: yup.string().min(3).required().label('Meno dieťaťa'),
+    surname: yup.string().min(3).required().label('Priezvisko dieťaťa'),
+    city: yup.string().min(3).required().label('Mesto'),
+    finishedSchoolYear: yup.string().required().label('Ukončený školský rok'),
+    attendedPreviousEvents: yup.boolean().required().label('Zúčastnil sa minuloročných akcií'),
+    dateOfBirthDay: yup.number().min(1).max(31).required().label('Deň narodenia'),
+    dateOfBirthMonth: yup.number().min(1).max(12).required().label('Mesiac narodenia'),
+    dateOfBirthYear: yup.number().min(1990).max(2018).required().label('Rok narodenia')
+  }),
+  medicine: yup.object().shape({
+    takes: yup.boolean().required().label('Lieky')
+  }),
+  health: yup.object().shape({
+    hasProblmes: yup.boolean().required().label('Zdravotné ťažkosti')
+  }),
+  parent: yup.object().shape({
+    name: yup.string().min(3).required().label('Meno zákonneho zástupcu'),
+    surname: yup.string().min(3).required().label('Priezvisko zákonneho zástupcu'),
+    email: yup.string().email().required().label('Email'),
+    phone: yup.string().required().label('Telefónne číslo')
+  }),
+  days: yup.array().of(yup.number()).min(1).label('Dni akcie')
+});
 
 interface StepperProps {
   event: IEvent,
@@ -61,10 +92,6 @@ const initialValues = {
   promo_code: null
 }
 
-const validate = () => {
-  return true
-}
-
 const eventFull = (stats: Stat[]) => {
   let total = 0;
   let sum = 0;
@@ -82,9 +109,41 @@ const eventFull = (stats: Stat[]) => {
 
 
 const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
-  const { control, watch, setValue, register, handleSubmit, getValues } = useForm<Registration>({
-    defaultValues: initialValues
+  const { control, watch, setValue, register, handleSubmit, getValues, formState: { errors, isValid }, trigger } = useForm<Registration>({
+    defaultValues: initialValues,
+    resolver: yupResolver(schema),
+    mode: 'onBlur'
   })
+
+  const { child: childErrors, medicine: medicineErrors, health: healthErrors, parent: parentErrors, days: daysErrors } = errors
+
+  const childErrorMessages = [
+    childErrors?.name,
+    childErrors?.surname,
+    childErrors?.dateOfBirthDay,
+    childErrors?.dateOfBirthMonth,
+    childErrors?.dateOfBirthYear,
+    childErrors?.city,
+    childErrors?.attendedPreviousEvents
+
+  ].map(error => error?.message).filter(e => e)
+
+  const MedicineHealthErrorMessages = [
+    medicineErrors?.takes,
+    healthErrors?.hasProblmes
+  ].map(error => error?.message).filter(e => e)
+
+  const daysErrorMessages = [
+    daysErrors
+
+  ].map(error => error?.message).filter(e => e)
+
+  const parentErrorMessages = [
+    parentErrors?.name,
+    parentErrors?.surname,
+    parentErrors?.email,
+    parentErrors?.phone
+  ].map(error => error?.message).filter(e => e)
 
   const router = useIonRouter()
 
@@ -104,11 +163,13 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
         promo_code: promo
       }
     }
-  }: null)
+  } : null)
 
   useEffect(() => {
     if (event.days.length > 1) {
       setPageCount(6)
+    } else {
+      setValue('days', [event.days[0].id])
     }
     setIsFull(eventFull(stats))
 
@@ -240,10 +301,54 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
                 activePage === ActivePage.ParentInfo && <ParentInfo register={register} control={control} watch={watch} setValue={setValue} />
               }
               {
-                activePage === ActivePage.OtherInfo && <OtherInfo register={register} />
+                activePage === ActivePage.OtherInfo && <OtherInfo register={register} trigger={trigger} />
               }
             </IonCol>
             <IonCol size="2"></IonCol>
+          </IonRow>
+        }
+        {
+          !isValid &&
+          <IonRow>
+            <IonCol></IonCol>
+            <IonCol>
+              {
+                activePage === ActivePage.ChildInfo && childErrorMessages.map((error) => (
+                  <IonItem color='danger'>
+                    {error}
+                  </IonItem>
+                ))
+              }
+              {
+                activePage === ActivePage.MedicineHealth && MedicineHealthErrorMessages.map((error) => (
+                  <IonItem color='danger'>
+                    {error}
+                  </IonItem>
+                ))
+              }
+              {
+                activePage === ActivePage.DaySelector && daysErrorMessages.map((error) => (
+                  <IonItem color='danger'>
+                    {error}
+                  </IonItem>
+                ))
+              }
+              {
+                activePage === ActivePage.ParentInfo && parentErrorMessages.map((error) => (
+                  <IonItem color='danger'>
+                    {error}
+                  </IonItem>
+                ))
+              }
+              {
+                activePage === ActivePage.OtherInfo && [...childErrorMessages, ...MedicineHealthErrorMessages, ...daysErrorMessages, ...parentErrorMessages].map((error) => (
+                  <IonItem color='danger'>
+                    {error}
+                  </IonItem>
+                ))
+              }
+            </IonCol>
+            <IonCol></IonCol>
           </IonRow>
         }
         <IonRow>
@@ -264,7 +369,7 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
               {
                 page < pageCount - 1 && !isFull && (event.active || (event.promo_registration && promoValidation?.status == "ok" && promoValidation.available_registrations > 0)) &&
                 <IonButton expand="full" shape="round" onClick={async () => {
-                  if (page < pageCount && validate()) {
+                  if (page < pageCount) {
                     setPage(page + 1)
                   }
                 }}>
@@ -273,12 +378,12 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
                 </IonButton>
               }
               {
-                page === pageCount - 1 &&
+                activePage == ActivePage.OtherInfo &&
                 <IonButton
                   expand="full"
                   shape="round"
                   color="success"
-                  // disabled={!this.state.valid}
+                  disabled={!isValid}
                   type='submit'
                 >
                   Odoslať
