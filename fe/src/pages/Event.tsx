@@ -3,12 +3,19 @@ import { useParams } from 'react-router';
 import useSWR from 'swr';
 import { IEvent, Stat } from '../utils/types';
 import Stepper from '../components/Stepper/Stepper'
+import { useEffect } from 'react'
 
 const EventPage: React.FC = () => {
 
   const { id } = useParams<{ id: string }>();
   const { data: event, isLoading } = useSWR<IEvent>({ url: `/events/${id}` })
   const { data: stats, isLoading: isStatsLoading } = useSWR<Stat[]>({ url: `/stats/${id}` }, { refreshInterval: 5000 })
+
+  useEffect(() => {
+    if (event) {
+      document.title = event.title;
+    }
+  }, [event])
 
   return (
     <IonPage>
