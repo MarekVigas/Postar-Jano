@@ -57,7 +57,7 @@ const EventsPage: React.FC = () => {
           title='Načítavam...'
         />
         {
-          state.promo && promoValidation && promoValidation.status == "ok" &&
+          state.promo && promoValidation &&
           <IonItem>
             Váš promo kód: {state.promo} <br />
             Zostávajúci počet použití: {promoValidation?.available_registrations}
