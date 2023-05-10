@@ -15,18 +15,25 @@ services:
     networks:
       - backend
     volumes:
-      - /root/salezko/email.html:/tmp/email.html
+      - /root/salezko/promo.html:/tmp/promo.html
+      - /root/salezko/confirmation.html:/tmp/confirmation.html
     env_file: api.env
     deploy:
       # replicas: 2
       resources:
         limits:
           cpus: '0.5'
-          memory: 200M
+          memory: 500M
   form:
     image: marekvigas/sbb-leto-form:sbb
     ports:
       - "4000:80"
+
+  admin:
+    image: marekvigas/sbb-leto-admin:sbb
+    ports:
+      - "3000:80"
+
   pgadmin:
     image: dpage/pgadmin4
     volumes:
