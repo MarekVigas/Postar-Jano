@@ -11,7 +11,7 @@ interface AppData {
 
 const AppContext = React.createContext<AppData|undefined>(undefined)
 
-const defaultApiHost = "https://leto.sbb.sk"
+const defaultApiHost = "https://leto-api.salezko.sk"
 
 interface AppProps {
     host :string|undefined
