@@ -123,7 +123,7 @@ jobs:
           push: true
           tags: marekvigas/sbb-leto-admin:sbb
           build-args: |
-            REACT_APP_API_HOST=https://leto.sbb.sk
+            REACT_APP_API_HOST=https://leto-api.salezko.sk
 
   be-unit-test:
     # The type of runner that the job will run on
