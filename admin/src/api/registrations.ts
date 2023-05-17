@@ -56,21 +56,8 @@ export class Registrations {
     }
 
     public delete(id :number) :Promise<IRegistration> {
-        return this.client.delete<IRegistration>(`/registrations/${id}`)
+        return this.client.delete<IRegistration>(`/api/registrations/${id}`)
     }
-}
-
-export const deleteRegistration = (apiHost :string, token:string|null, id:number) :Promise<IRegistration> => {
-    return new Promise<IRegistration>((resolve, reject) => {
-        axios.delete<IRegistration>(
-            `${apiHost}/api/registrations/${id}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                }
-            }
-        ).then((resp) => resolve(resp.data)).catch(err => reject(err))
-    })
 }
 
 export const updateRegistration = (apiHost :string, token:string|null, reg :IExtendedRegistration) :Promise<number> => {
