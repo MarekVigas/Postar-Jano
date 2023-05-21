@@ -2,14 +2,13 @@ package resources
 
 import (
 	"strings"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
 type UpdateReq struct {
-	Child struct {
+	/*Child struct {
 		Name             string    `json:"name" validate:"required"`
 		Surname          string    `json:"surname" validate:"required"`
 		Gender           string    `json:"gender"`
@@ -37,7 +36,7 @@ type UpdateReq struct {
 	Membership struct {
 		AttendedActivities string `json:"attendedActivities"`
 	} `json:"memberShip"`
-	Notes     string `json:"notes"`
+	Notes     string `json:"notes"`*/
 	Amount    int    `json:"amount"`
 	Payed     *int   `json:"payed"`
 	Discount  *int   `json:"discount"`
