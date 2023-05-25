@@ -23,7 +23,7 @@ func NewSimpleGenerator(logger *zap.Logger) *SimpleGenerator {
 	}
 }
 
-func (g *SimpleGenerator) GenerateToken(ctx context.Context, tx *sqlx.Tx, email string, registrationCount int) (token string, err error) {
+func (g *SimpleGenerator) GenerateToken(ctx context.Context, tx sqlx.QueryerContext, email string, registrationCount int) (token string, err error) {
 	key := uuid.New().String()
 	if _, err := (&model.PromoCode{
 		Email:                  email,

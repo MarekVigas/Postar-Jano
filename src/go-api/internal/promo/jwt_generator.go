@@ -36,7 +36,7 @@ func NewJWTGenerator(logger *zap.Logger, secret []byte, activationDate *time.Tim
 	}
 }
 
-func (g *JWTGenerator) GenerateToken(ctx context.Context, tx *sqlx.Tx, email string, registrationCount int) (token string, err error) {
+func (g *JWTGenerator) GenerateToken(ctx context.Context, tx sqlx.QueryerContext, email string, registrationCount int) (token string, err error) {
 	key := uuid.New().String()
 	claims := jwt.StandardClaims{
 		Audience: audience,
@@ -71,6 +71,10 @@ func (g *JWTGenerator) ValidateToken(ctx context.Context, tx sqlx.QueryerContext
 		return g.promoSecret, nil
 	})
 	if err != nil {
+		var validationErr *jwt.ValidationError
+		if errors.As(err, &validationErr) {
+			return nil, errors.WithStack(ErrInvalid)
+		}
 		return nil, errors.WithStack(err)
 	}
 	if !decodedToken.Valid {
