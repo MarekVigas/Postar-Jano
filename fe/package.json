@@ -12,18 +12,18 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@capacitor/app": "5.0.1",
-    "@capacitor/core": "5.0.1",
-    "@capacitor/haptics": "5.0.1",
-    "@capacitor/keyboard": "5.0.1",
-    "@capacitor/status-bar": "5.0.1",
+    "@capacitor/app": "5.0.7",
+    "@capacitor/core": "5.7.3",
+    "@capacitor/haptics": "5.0.7",
+    "@capacitor/keyboard": "5.0.8",
+    "@capacitor/status-bar": "5.0.7",
     "@hookform/resolvers": "^3.1.0",
-    "@ionic/react": "^7.0.0",
-    "@ionic/react-router": "^7.0.0",
+    "@ionic/react": "^7.8.0",
+    "@ionic/react-router": "^7.8.0",
     "@types/react-router": "^5.1.20",
     "@types/react-router-dom": "^5.3.3",
-    "axios": "^1.4.0",
-    "ionicons": "^7.0.0",
+    "axios": "^1.6.8",
+    "ionicons": "^7.2.2",
     "little-state-machine": "^4.8.0",
     "query-string": "^8.1.0",
     "react": "^18.2.0",
@@ -33,13 +33,13 @@
     "react-router": "^5.3.4",
     "react-router-dom": "^5.3.4",
     "sass": "^1.62.1",
-    "swr": "^2.1.5",
+    "swr": "^2.2.5",
     "terser": "^5.17.1",
-    "yup": "^1.1.1",
-    "yup-locales": "^1.2.12"
+    "yup": "^1.4.0",
+    "yup-locales": "^1.2.21"
   },
   "devDependencies": {
-    "@capacitor/cli": "5.0.1",
+    "@capacitor/cli": "5.7.3",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.4.3",
@@ -47,13 +47,12 @@
     "@types/react-dom": "^18.0.10",
     "@vitejs/plugin-legacy": "^4.0.2",
     "@vitejs/plugin-react": "^3.1.0",
-    "cypress": "^12.7.0",
     "eslint": "^8.35.0",
     "eslint-plugin-react": "^7.32.2",
     "jsdom": "^21.1.0",
-    "typescript": "^4.9.3",
-    "vite": "^4.1.0",
-    "vitest": "^0.29.2"
+    "typescript": "^5.4.2",
+    "vite": "^4.5.2",
+    "vitest": "^0.29.8"
   },
   "description": "An Ionic project"
 }
