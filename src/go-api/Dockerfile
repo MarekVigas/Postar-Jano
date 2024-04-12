@@ -1,4 +1,4 @@
-FROM golang:1.18.0 AS builder
+FROM golang:1.22.0 AS builder
 
 ADD https://github.com/chrisaxiom/docker-health-check/blob/master/docker-health-check?raw=true /docker-health-check
 RUN chmod a+x /docker-health-check

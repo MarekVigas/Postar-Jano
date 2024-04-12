@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"database/sql"
+	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -18,8 +19,8 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-playground/validator/v10"
+	echojwt "github.com/labstack/echo-jwt"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
@@ -62,10 +63,9 @@ func New(
 		jwtSecret:     jwtSecret,
 	}
 
-	jwt := middleware.JWTWithConfig(middleware.JWTConfig{
-		Claims:     &auth.Claims{},
+	jwt := echojwt.WithConfig(echojwt.Config{
 		SigningKey: jwtSecret,
-		ErrorHandler: func(err error) error {
+		ErrorHandler: func(c echo.Context, err error) error {
 			return echo.ErrUnauthorized
 		},
 	})
