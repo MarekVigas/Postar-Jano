@@ -16,4 +16,13 @@ type ConfirmationReq struct {
 	Info          string
 	Days          []string
 	RegInfo       string
+	Payment       PaymentDetails
+}
+
+type PaymentDetails struct {
+	IBAN             string
+	PaymentReference string
+	SpecificSymbol   string
+	Link             string
+	QRCode           string
 }

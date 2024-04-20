@@ -48,7 +48,7 @@ func FindPromoCodeByKey(ctx context.Context, tx sqlx.QueryerContext, key string)
 	return &code, nil
 }
 
-func DecrementAvailableRegistrationsPromoCodeByKey(ctx context.Context, tx *sqlx.Tx, key string) (*PromoCode, error) {
+func DecrementAvailableRegistrationsPromoCodeByKey(ctx context.Context, tx sqlx.QueryerContext, key string) (*PromoCode, error) {
 	var code PromoCode
 	if err := sqlx.GetContext(ctx, tx, &code, `UPDATE promo_codes SET available_registrations=available_registrations - 1 WHERE key = $1 RETURNING *`, key); err != nil {
 		return nil, errors.Wrap(err, "failed to mark promo_code as used")

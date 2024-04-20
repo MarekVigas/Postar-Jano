@@ -29,7 +29,7 @@ func NewPromoSuite(promoSetup func(commonSuite *CommonSuite) repository.PromoMan
 
 func (s *PromoSuite) SetupSuite() {
 	s.CommonSuite.SetupSuite()
-	s.promoSetup(&s.CommonSuite)
+	s.promoManager = s.promoSetup(&s.CommonSuite)
 }
 
 func (s *PromoSuite) TestGeneratePromoCode_Unauthorized() {
@@ -97,19 +97,42 @@ func (s *PromoSuite) TestGeneratePromoCode_OK() {
 }
 
 func (s *PromoSuite) TestValidatePromoCode_UnprocessableEntity() {
-
+	req, rec := s.NewRequest(http.MethodPost, "/api/promo_codes/validate", echo.Map{})
+	s.AssertServerResponseObject(req, rec, http.StatusUnprocessableEntity, nil)
 }
 
 func (s *PromoSuite) TestValidatePromoCode_NonExisting() {
-
+	req, rec := s.NewRequest(http.MethodPost, "/api/promo_codes/validate", echo.Map{"promo_code": "XXX"})
+	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
+		s.Equal(echo.Map{"status": "invalid", "available_registrations": float64(0)}, body)
+	})
 }
 
 func (s *PromoSuite) TestValidatePromoCode_AlreadyUsed() {
+	ctx := context.Background()
+	token, err := s.promoManager.GenerateToken(ctx, s.dbx, "test@test.com", 1)
+	s.Require().NoError(err)
 
+	promoCode, err := s.promoManager.ValidateToken(ctx, s.dbx, token)
+	s.Require().NoError(err)
+
+	s.Require().NoError(s.promoManager.MarkTokenUsage(ctx, s.dbx, promoCode.Key))
+
+	req, rec := s.NewRequest(http.MethodPost, "/api/promo_codes/validate", echo.Map{"promo_code": token})
+	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
+		s.Equal(echo.Map{"status": "invalid", "available_registrations": float64(0)}, body)
+	})
 }
 
 func (s *PromoSuite) TestValidatePromoCode_Valid() {
+	const regCount = 10
+	token, err := s.promoManager.GenerateToken(context.Background(), s.dbx, "test@test.com", regCount)
+	s.Require().NoError(err)
 
+	req, rec := s.NewRequest(http.MethodPost, "/api/promo_codes/validate", echo.Map{"promo_code": token})
+	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
+		s.Equal(echo.Map{"status": "ok", "available_registrations": float64(regCount)}, body)
+	})
 }
 
 func TestSimplePromoSuite(t *testing.T) {

@@ -36,6 +36,9 @@ CREATE TABLE "public"."events" (
                                    price text NULL,
                                    "active" boolean DEFAULT false NOT NULL,
                                    "promo_registration" boolean DEFAULT false NOT NULL,
+                                   "iban" text DEFAULT '' NOT NULL ,
+                                   "payment_reference" text DEFAULT '' NOT NULL,
+                                   "promo_discount" integer DEFAULT 0 NOT NULL,
                                    CONSTRAINT "events_id" PRIMARY KEY ("id"),
                                    CONSTRAINT "events_owner_id_fkey" FOREIGN KEY (owner_id) REFERENCES owners(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT DEFERRABLE
 ) WITH (oids = false);
@@ -57,6 +60,8 @@ CREATE TABLE "public"."days" (
 
 
 CREATE SEQUENCE children_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 START 1 CACHE 1;
+CREATE SEQUENCE specific_symbol_seq INCREMENT 1 MINVALUE 100000 MAXVALUE 2147483647 CACHE 1;
+
 
 CREATE TABLE "public"."registrations" (
                                           "id" integer DEFAULT nextval('children_id_seq') NOT NULL,
@@ -84,6 +89,7 @@ CREATE TABLE "public"."registrations" (
                                           "admin_note" text DEFAULT '' NOT NULL,
                                           "discount" integer,
                                           "promo_code" text,
+                                          "specific_symbol" integer UNIQUE DEFAULT nextval('specific_symbol_seq') NOT NULL,
                                           CONSTRAINT "registrations_id" PRIMARY KEY ("id")
 ) WITH (oids = false);
 

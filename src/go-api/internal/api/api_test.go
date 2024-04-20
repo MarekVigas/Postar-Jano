@@ -71,8 +71,6 @@ func (s *CommonSuite) SetupSuite() {
 		s.logger = zap.NewNop()
 	}
 
-	s.mailer = &SenderMock{}
-
 	var dbConfig config.DB
 	s.Require().NoError(envconfig.Process("", &dbConfig))
 
@@ -109,6 +107,8 @@ func (s *CommonSuite) TearDownSuite() {
 
 func (s *CommonSuite) SetupTest() {
 	ctx := context.Background()
+
+	s.mailer = &SenderMock{}
 
 	repo := repository.NewPostgresRepo(s.db, s.promoManager)
 	s.api = api.New(
@@ -195,17 +195,20 @@ func (s *CommonSuite) InsertEvent() *model.Event {
 	s.Require().NoError(err)
 
 	event := model.Event{
-		Title:       "Camp 42",
-		Description: "Lorem ipsum",
-		DateFrom:    "15 june 2020",
-		DateTo:      "20 june 2020",
-		Location:    "somewhere",
-		MinAge:      10,
-		MaxAge:      15,
-		Info:        s.stringRef("xyz.."),
-		Photo:       "photo",
-		Active:      true,
-		EventOwner:  s.eventOwnerFromModel(owner),
+		Title:            "Camp 42",
+		Description:      "Lorem ipsum",
+		DateFrom:         "15 june 2020",
+		DateTo:           "20 june 2020",
+		Location:         "somewhere",
+		MinAge:           10,
+		MaxAge:           15,
+		Info:             s.stringRef("xyz.."),
+		Photo:            "photo",
+		Active:           true,
+		IBAN:             "SK7409000000005073149693",
+		PromoDiscount:    2,
+		PaymentReference: "202401",
+		EventOwner:       s.eventOwnerFromModel(owner),
 	}
 	s.Require().NoError((&event).Create(ctx, s.dbx))
 
@@ -258,6 +261,15 @@ func (s *CommonSuite) stringRef(str string) *string {
 
 func (s *CommonSuite) intRef(val int) *int {
 	return &val
+}
+
+func (s *CommonSuite) lastSequenceValue(seqName string) int {
+	row := s.db.QueryRow(fmt.Sprintf("SELECT last_value FROM %s", seqName))
+	s.Require().NoError(row.Err())
+
+	var value int
+	s.Require().NoError(row.Scan(&value))
+	return value
 }
 
 func (s *CommonSuite) eventOwnerFromModel(owner *model.Owner) model.EventOwner {
