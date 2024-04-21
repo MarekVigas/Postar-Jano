@@ -34,9 +34,18 @@ type Registration struct {
 	AdminNote          string      `json:"admin_note" db:"admin_note"`
 	Token              string      `json:"token" db:"token"`
 	PromoCode          *string     `json:"promo_code" db:"promo_code"`
+	SpecificSymbol     string      `json:"specific_symbol" db:"specific_symbol"`
 	UpdatedAt          time.Time   `json:"updated_at" db:"updated_at"`
 	CreatedAt          time.Time   `json:"created_at" db:"created_at"`
 	DeletedAt          pq.NullTime `json:"-" db:"deleted_at"`
+}
+
+func (r *Registration) AmountToPay() int {
+	amount := r.Amount
+	if r.Discount != nil {
+		amount -= *r.Discount
+	}
+	return amount
 }
 
 func (r *Registration) Create(ctx context.Context, db sqlx.QueryerContext) (*Registration, error) {
@@ -61,6 +70,7 @@ func (r *Registration) Create(ctx context.Context, db sqlx.QueryerContext) (*Reg
 				attended_activities,
 				problems,
 				promo_code,
+			    discount,
 				created_at,
 				updated_at
 			) VALUES (
@@ -82,13 +92,14 @@ func (r *Registration) Create(ctx context.Context, db sqlx.QueryerContext) (*Reg
 				$16,
 				$17,
 				$18,
+			    $19,
 				NOW(),
 				NOW()
 			) RETURNING *
 		`, r.Name, r.Surname, r.Gender, r.Amount, r.Token,
 		r.DateOfBirth, r.FinishedSchool, r.AttendedPrevious, r.City,
 		r.Pills, r.Notes, r.ParentName, r.ParentSurname, r.Email,
-		r.Phone, r.AttendedActivities, r.Problems, r.PromoCode)
+		r.Phone, r.AttendedActivities, r.Problems, r.PromoCode, r.Discount)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create a registration")
 	}

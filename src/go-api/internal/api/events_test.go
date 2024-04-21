@@ -66,11 +66,14 @@ func (s *EventsSuite) eventToResource(event *model.Event) echo.Map {
 		"active":             event.Active,
 		"promo_registration": event.PromoRegistration,
 
-		"photo":     event.Photo,
-		"info":      nil,
-		"mail_info": nil,
-		"price":     nil,
-		"time":      nil,
+		"photo":             event.Photo,
+		"info":              nil,
+		"mail_info":         nil,
+		"price":             nil,
+		"time":              nil,
+		"iban":              event.IBAN,
+		"promo_discount":    float64(event.PromoDiscount),
+		"payment_reference": event.PaymentReference,
 	}
 	if event.Time != nil {
 		res["time"] = *event.Time

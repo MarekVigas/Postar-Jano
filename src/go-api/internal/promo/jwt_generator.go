@@ -36,7 +36,7 @@ func NewJWTGenerator(logger *zap.Logger, secret []byte, activationDate *time.Tim
 	}
 }
 
-func (g *JWTGenerator) GenerateToken(ctx context.Context, tx *sqlx.Tx, email string, registrationCount int) (token string, err error) {
+func (g *JWTGenerator) GenerateToken(ctx context.Context, tx sqlx.QueryerContext, email string, registrationCount int) (token string, err error) {
 	key := uuid.New().String()
 	claims := jwt.StandardClaims{
 		Audience: audience,
@@ -71,7 +71,7 @@ func (g *JWTGenerator) ValidateToken(ctx context.Context, tx sqlx.QueryerContext
 		return g.promoSecret, nil
 	})
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.WithStack(ErrInvalid)
 	}
 	if !decodedToken.Valid {
 		return nil, errors.WithStack(ErrInvalid)
@@ -87,7 +87,7 @@ func (g *JWTGenerator) ValidateToken(ctx context.Context, tx sqlx.QueryerContext
 	return promoCode, nil
 }
 
-func (g *JWTGenerator) MarkTokenUsage(ctx context.Context, tx *sqlx.Tx, key string) (err error) {
+func (g *JWTGenerator) MarkTokenUsage(ctx context.Context, tx sqlx.QueryerContext, key string) (err error) {
 	if _, err := model.DecrementAvailableRegistrationsPromoCodeByKey(ctx, tx, key); err != nil {
 		return errors.WithStack(err)
 	}

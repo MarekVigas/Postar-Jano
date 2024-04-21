@@ -23,6 +23,9 @@ type Event struct {
 	MailInfo          *string `json:"mail_info" db:"mail_info"`
 	Active            bool    `json:"active" db:"active"`
 	PromoRegistration bool    `json:"promo_registration" db:"promo_registration"`
+	IBAN              string  `json:"iban" db:"iban"`
+	PromoDiscount     int     `json:"promo_discount" db:"promo_discount"`
+	PaymentReference  string  `json:"payment_reference" db:"payment_reference"`
 	EventOwner        `json:"owner"`
 	Days              []Day `json:"days"`
 }
@@ -53,10 +56,14 @@ func (e *Event) Create(ctx context.Context, db sqlx.ExtContext) error {
 			price,
 			mail_info,
 			active,
-			owner_id
+			owner_id,
+		    iban,
+		    payment_reference,
+		    promo_discount
 		) 
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
 		RETURNING *
 	`, e.Title, e.Description, e.DateFrom, e.DateTo, e.Location, e.MinAge, e.MaxAge,
-		e.Info, e.Photo, e.Time, e.Price, e.MailInfo, e.Active, e.OwnerID))
+		e.Info, e.Photo, e.Time, e.Price, e.MailInfo, e.Active, e.OwnerID, e.IBAN,
+		e.PaymentReference, e.PromoDiscount))
 }

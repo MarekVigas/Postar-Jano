@@ -24,9 +24,9 @@ var (
 )
 
 type PromoManager interface {
-	GenerateToken(ctx context.Context, tx *sqlx.Tx, email string, registrationCount int) (token string, err error)
+	GenerateToken(ctx context.Context, tx sqlx.QueryerContext, email string, registrationCount int) (token string, err error)
 	ValidateToken(ctx context.Context, tx sqlx.QueryerContext, token string) (code *model.PromoCode, err error)
-	MarkTokenUsage(ctx context.Context, tx *sqlx.Tx, key string) (err error)
+	MarkTokenUsage(ctx context.Context, tx sqlx.QueryerContext, key string) (err error)
 }
 
 func NewPostgresRepo(db *sql.DB, manager PromoManager) *PostgresRepo {
@@ -83,6 +83,9 @@ func (repo *PostgresRepo) ListEvents(ctx context.Context) ([]model.Event, error)
 				ev.mail_info,
 				ev.active,
 				ev.promo_registration,
+				ev.iban,
+				ev.payment_reference,
+				ev.promo_discount,
 				o.id AS owner_id,
 				o.name AS owner_name,
 				o.surname AS owner_surname,
@@ -141,6 +144,9 @@ func (repo *PostgresRepo) FindEvent(ctx context.Context, id int) (*model.Event, 
 				ev.mail_info,
 				ev.active,
 				ev.promo_registration,
+				ev.iban,
+				ev.payment_reference,
+				ev.promo_discount,
 				o.id AS owner_id,
 				o.name AS owner_name,
 				o.surname AS owner_surname,
@@ -265,9 +271,22 @@ func (repo *PostgresRepo) Register(ctx context.Context, req *resources.RegisterR
 			}
 		}
 
+		// Apply promo discount
+		var discount int
+		if promoKey != "" {
+			discount = event.PromoDiscount
+		}
+
 		newNullString := func(s string) *string {
 			if s != "" {
 				return &s
+			}
+			return nil
+		}
+
+		newNullInt := func(val int) *int {
+			if val != 0 {
+				return &val
 			}
 			return nil
 		}
@@ -292,6 +311,7 @@ func (repo *PostgresRepo) Register(ctx context.Context, req *resources.RegisterR
 			Amount:             amount,
 			Token:              token.String(),
 			PromoCode:          newNullString(promoKey),
+			Discount:           newNullInt(discount),
 		}).Create(ctx, tx)
 		if err != nil {
 			return err

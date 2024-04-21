@@ -2,8 +2,11 @@ package api_test
 
 import (
 	"fmt"
+	"github.com/MarekVigas/Postar-Jano/internal/model"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strconv"
 	"testing"
 	"time"
 
@@ -153,25 +156,33 @@ func (s *RegistrationSuite) testRegister_NotActive_Promo() {
 
 	day := event.Days[0]
 	birth := time.Now().Format(time.RFC3339)
-	createRegistrationReq := func() (*http.Request, *httptest.ResponseRecorder) {
-		s.mailer.On("ConfirmationMail", mock.Anything, &templates.ConfirmationReq{
-			Mail:          email,
-			ParentName:    pname,
-			ParentSurname: psurname,
-			EventName:     event.Title,
-			Name:          name,
-			Surname:       surname,
-			Pills:         "-",
-			Restrictions:  "-",
-			Info:          "",
-			PhotoURL:      event.OwnerPhoto,
-			Sum:           day.Price,
-			Owner:         "John Doe",
-			Text:          event.OwnerPhone + " " + event.OwnerEmail,
-			Days:          []string{day.Description},
-			RegInfo:       *event.Info,
-		}).Return(nil)
 
+	s.mailer.On("ConfirmationMail", mock.Anything, &templates.ConfirmationReq{
+		Mail:          email,
+		ParentName:    pname,
+		ParentSurname: psurname,
+		EventName:     event.Title,
+		Name:          name,
+		Surname:       surname,
+		Pills:         "-",
+		Restrictions:  "-",
+		Info:          "",
+		PhotoURL:      event.OwnerPhoto,
+		Sum:           day.Price,
+		Owner:         "John Doe",
+		Text:          event.OwnerPhone + " " + event.OwnerEmail,
+		Days:          []string{day.Description},
+		RegInfo:       *event.Info,
+		Payment: templates.PaymentDetails{
+			IBAN:             event.IBAN,
+			PaymentReference: event.PaymentReference,
+			SpecificSymbol:   s.expectedNextSpecificSymbol(),
+			Link:             s.expectedPayMeLink(day.Price-event.PromoDiscount, event.IBAN, name, surname, event, s.expectedNextSpecificSymbol()),
+			QRCode:           "",
+		},
+	}).Return(nil)
+
+	createRegistrationReq := func() (*http.Request, *httptest.ResponseRecorder) {
 		u := fmt.Sprintf("/api/registrations/%d", event.ID)
 		return s.NewRequest(http.MethodPost, u, echo.Map{
 			"child": echo.Map{
@@ -289,6 +300,13 @@ func (s *RegistrationSuite) TestRegister_OK() {
 		Text:          event.OwnerPhone + " " + event.OwnerEmail,
 		Days:          []string{day.Description},
 		RegInfo:       *event.Info,
+		Payment: templates.PaymentDetails{
+			IBAN:             event.IBAN,
+			PaymentReference: event.PaymentReference,
+			SpecificSymbol:   s.expectedNextSpecificSymbol(),
+			Link:             s.expectedPayMeLink(day.Price, event.IBAN, name, surname, event, s.expectedNextSpecificSymbol()),
+			QRCode:           "",
+		},
 	}).Return(nil)
 
 	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
@@ -300,6 +318,12 @@ func (s *RegistrationSuite) TestRegister_OK() {
 		}, body)
 	})
 	//TODO: assert DB content
+	s.mailer.AssertExpectations(s.T())
+}
+
+func (s *RegistrationSuite) expectedNextSpecificSymbol() string {
+	specificSymbol := s.lastSequenceValue("specific_symbol_seq")
+	return strconv.Itoa(specificSymbol + 1)
 }
 
 func (s *RegistrationSuite) TestDelete_Unauthorized() {
@@ -320,6 +344,25 @@ func (s *RegistrationSuite) TestDelete_OK() {
 	req, rec := s.NewRequest(http.MethodDelete, u, nil)
 	s.AuthorizeRequest(req, &auth.Claims{StandardClaims: jwt.StandardClaims{Id: "admin@sbb.sk"}})
 	s.AssertServerResponseObject(req, rec, http.StatusOK, nil)
+}
+
+func (s *RegistrationSuite) expectedPayMeLink(
+	amount int,
+	iban string,
+	name string,
+	surname string,
+	event *model.Event,
+	specificSymbol string,
+) string {
+	v := url.Values{}
+	v.Set("AM", strconv.Itoa(amount))
+	v.Set("CC", "EUR")
+	v.Set("V", "1")
+	v.Set("CN", "salezko")
+	v.Set("IBAN", iban)
+	v.Set("PI", fmt.Sprintf("/VS%s/SS%s/KS%s", event.PaymentReference, specificSymbol, ""))
+	v.Set("MSG", fmt.Sprintf("%s %s %s", event.Title, name, surname))
+	return "https://payme.sk?" + v.Encode()
 }
 
 func TestRegistrationSuite(t *testing.T) {

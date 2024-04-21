@@ -3,6 +3,8 @@ package api
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"github.com/MarekVigas/Postar-Jano/internal/payme"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 	"reflect"
@@ -208,6 +210,12 @@ func (api *API) Register(c echo.Context) error {
 		regInfo = *reg.Event.Info
 	}
 
+	payment, err := api.registrationToPaymentDetails(reg)
+	if err != nil {
+		api.logger.Error("failed to create payment data", zap.Error(err))
+		return err
+	}
+
 	// Send confirmation mail.
 	if err := api.sender.ConfirmationMail(ctx, &templates.ConfirmationReq{
 		Mail:          reg.Reg.Email,
@@ -225,6 +233,7 @@ func (api *API) Register(c echo.Context) error {
 		Days:          reg.RegisteredDesc,
 		Info:          info,
 		RegInfo:       regInfo,
+		Payment:       payment,
 	}); err != nil {
 		api.logger.Error("Failed to send a confirmation mail.", zap.Error(err))
 		return err
@@ -475,6 +484,28 @@ func (api *API) getIntParam(c echo.Context, name string) (int, error) {
 		return 0, echo.ErrBadRequest
 	}
 	return int(id), nil
+}
+
+func (api *API) registrationToPaymentDetails(reg *model.RegResult) (templates.PaymentDetails, error) {
+	link, err := payme.NewBuilder().
+		IBAN(reg.Event.IBAN).
+		Amount(reg.Reg.AmountToPay()).
+		PaymentReference(reg.Event.PaymentReference).
+		SpecificSymbol(reg.Reg.SpecificSymbol).
+		Note(fmt.Sprintf("%s %s %s", reg.Event.Title, reg.Reg.Name, reg.Reg.Surname)).
+		Build()
+	if err != nil {
+		return templates.PaymentDetails{}, err
+	}
+
+	details := templates.PaymentDetails{
+		IBAN:             reg.Event.IBAN,
+		PaymentReference: reg.Event.PaymentReference,
+		SpecificSymbol:   reg.Reg.SpecificSymbol,
+		Link:             link,
+		QRCode:           "", // TODO
+	}
+	return details, nil
 }
 
 func validateStruct(s interface{}) interface{} {
