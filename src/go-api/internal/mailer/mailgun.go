@@ -38,7 +38,7 @@ func NewClient(cfg *config.Mailer, logger *zap.Logger) (*Client, error) {
 
 	promoTemplate, err := templates.LoadFromFile(cfg.PromoMailTemplate)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to load confirmation template")
+		return nil, errors.Wrap(err, "failed to load promo template")
 	}
 
 	return &Client{
