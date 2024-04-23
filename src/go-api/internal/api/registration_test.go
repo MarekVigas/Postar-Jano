@@ -168,7 +168,7 @@ func (s *RegistrationSuite) testRegister_NotActive_Promo() {
 		Restrictions:  "-",
 		Info:          "",
 		PhotoURL:      event.OwnerPhoto,
-		Sum:           day.Price,
+		Sum:           day.Price - event.PromoDiscount,
 		Owner:         "John Doe",
 		Text:          event.OwnerPhone + " " + event.OwnerEmail,
 		Days:          []string{day.Description},

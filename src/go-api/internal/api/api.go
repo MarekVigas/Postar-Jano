@@ -228,7 +228,7 @@ func (api *API) Register(c echo.Context) error {
 		Restrictions:  restrictions,
 		Text:          reg.Event.OwnerPhone + " " + reg.Event.OwnerEmail,
 		PhotoURL:      reg.Event.OwnerPhoto,
-		Sum:           reg.Reg.Amount,
+		Sum:           reg.Reg.AmountToPay(),
 		Owner:         reg.Event.OwnerName + " " + reg.Event.OwnerSurname,
 		Days:          reg.RegisteredDesc,
 		Info:          info,
