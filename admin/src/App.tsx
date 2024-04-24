@@ -39,7 +39,7 @@ const App: React.FC = () => {
          <div className="wrapper">
            <BrowserRouter basename="/admin">
                <Navbar bg="light">
-                   <Navbar.Brand>Leto 2023</Navbar.Brand>
+                   <Navbar.Brand>Leto 2024</Navbar.Brand>
                    <Nav style={{display:'flex', width:'100%'}}>
                        <Nav.Link>
                            <Link to="/events">

@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	audience = "Leto 2023"
+	audience = "Leto 2024"
 	issuer   = "sbb.sk"
 )
 
