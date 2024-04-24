@@ -100,7 +100,7 @@ jobs:
           tags: marekvigas/sbb-leto-form:sbb
           build-args: |
             VITE_API_HOST=https://leto-api.salezko.sk
-            VITE_RESULT_REDIRECT=https://sbb.sk/leto2023
+            VITE_RESULT_REDIRECT=https://sbb.sk/leto
 
   build-admin-sbb:
     if: contains( github.ref, 'master')

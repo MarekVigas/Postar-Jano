@@ -15,8 +15,8 @@ generate_promo_url = f"{base_url}/api/promo_codes"
 def str2bool(v):
     return v.lower() in ("yes", "true", "t", "1")
 
-username = os.getenv("USERNAME")
-password = os.getenv("PASS")
+username = os.getenv("LETO_USERNAME")
+password = os.getenv("LETO_PASS")
 input_file = os.getenv("INPUT_FILE")
 send_email = str2bool(os.getenv("SEND_EMAIL"))
 
