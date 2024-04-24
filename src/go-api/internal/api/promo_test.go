@@ -98,11 +98,17 @@ func (s *PromoSuite) TestGeneratePromoCode_OK() {
 
 func (s *PromoSuite) TestValidatePromoCode_UnprocessableEntity() {
 	req, rec := s.NewRequest(http.MethodPost, "/api/promo_codes/validate", echo.Map{})
-	s.AssertServerResponseObject(req, rec, http.StatusUnprocessableEntity, nil)
+	s.AssertServerResponseObject(req, rec, http.StatusUnprocessableEntity, func(body echo.Map) {
+		s.Equal(echo.Map{"errors": map[string]interface{}{
+			"promo_code": "missing",
+		}}, body)
+	})
 }
 
 func (s *PromoSuite) TestValidatePromoCode_NonExisting() {
-	req, rec := s.NewRequest(http.MethodPost, "/api/promo_codes/validate", echo.Map{"promo_code": "XXX"})
+	req, rec := s.NewRequest(http.MethodPost, "/api/promo_codes/validate", echo.Map{
+		"promo_code": "XYZ",
+	})
 	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
 		s.Equal(echo.Map{"status": "invalid", "available_registrations": float64(0)}, body)
 	})
