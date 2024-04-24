@@ -450,7 +450,22 @@ func (repo *PostgresRepo) markRegistrationAsDeleted(ctx context.Context, id int)
 	return &deleted, nil
 }
 
-func (repo *PostgresRepo) listRegistrations(ctx context.Context, where string, args ...interface{}) ([]model.ExtendedRegistration, error) {
+func (repo *PostgresRepo) MarkRegistrationAsNotified(ctx context.Context, tx sqlx.QueryerContext, id int) error {
+	var notifiedID int
+	err := sqlx.GetContext(ctx, tx, &notifiedID, `
+		UPDATE registrations SET 
+			notification_sent_at = NOW(),
+			updated_at = NOW()
+		WHERE id = $1
+		RETURNING id
+	`, id)
+	if err != nil {
+		return errors.Wrap(err, "failed to mark registration as notified")
+	}
+	return nil
+}
+
+func (repo *PostgresRepo) listRegistrations(ctx context.Context, db sqlx.QueryerContext, where string, args ...interface{}) ([]model.ExtendedRegistration, error) {
 	const queryTemplate = `
 		SELECT
 			r.id,
@@ -477,7 +492,10 @@ func (repo *PostgresRepo) listRegistrations(ctx context.Context, where string, a
 			r.admin_note,
 			r.created_at,
 			r.token,
-			r.updated_at
+			r.updated_at,
+			r.discount,
+			r.promo_code,
+			r.notification_sent_at
 		FROM registrations r
 		LEFT JOIN signups s ON r.id = s.registration_id
 		LEFT JOIN days d ON s.day_id = d.id
@@ -495,22 +513,26 @@ func (repo *PostgresRepo) listRegistrations(ctx context.Context, where string, a
 	}
 
 	var res []model.ExtendedRegistration
-	if err := sqlx.SelectContext(ctx, repo.db, &res, fmt.Sprintf(queryTemplate, condition), args...); err != nil {
+	if err := sqlx.SelectContext(ctx, db, &res, fmt.Sprintf(queryTemplate, condition), args...); err != nil {
 		return nil, errors.WithStack(err)
 	}
 	return res, nil
 }
 
 func (repo *PostgresRepo) ListRegistrations(ctx context.Context) ([]model.ExtendedRegistration, error) {
-	return repo.listRegistrations(ctx, "r.deleted_at IS NULL AND s.deleted_at IS NULL")
+	return repo.listRegistrations(ctx, repo.db, "r.deleted_at IS NULL AND s.deleted_at IS NULL")
 }
 
 func (repo *PostgresRepo) ListEventRegistrations(ctx context.Context, eventID int) ([]model.ExtendedRegistration, error) {
-	return repo.listRegistrations(ctx, "e.event_id=$1 AND deleted_at IS NULL", eventID)
+	return repo.listRegistrations(ctx, repo.db, "e.event_id=$1 AND deleted_at IS NULL", eventID)
+}
+
+func (repo *PostgresRepo) ListRegistrationsWithoutNotification(ctx context.Context, tx *sqlx.Tx) ([]model.ExtendedRegistration, error) {
+	return repo.listRegistrations(ctx, tx, "r.notification_sent_at IS NULL AND r.deleted_at IS NULL AND s.deleted_at IS NULL")
 }
 
 func (repo *PostgresRepo) FindRegistrationByID(ctx context.Context, regID int) (*model.ExtendedRegistration, error) {
-	regs, err := repo.listRegistrations(ctx, "r.id = $1 AND r.deleted_at IS NULL", regID)
+	regs, err := repo.listRegistrations(ctx, repo.db, "r.id = $1 AND r.deleted_at IS NULL", regID)
 	if err != nil {
 		return nil, err
 	}
@@ -525,7 +547,7 @@ func (repo *PostgresRepo) DeleteRegistrationByID(ctx context.Context, regID int)
 }
 
 func (repo *PostgresRepo) FindRegistrationByToken(ctx context.Context, token string) (*model.ExtendedRegistration, error) {
-	regs, err := repo.listRegistrations(ctx, "r.token = $1 IS NULL", token)
+	regs, err := repo.listRegistrations(ctx, repo.db, "r.token = $1 IS NULL", token)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,8 @@
 package api_test
 
 import (
+	"github.com/MarekVigas/Postar-Jano/internal/mailer/templates"
+	"github.com/stretchr/testify/mock"
 	"net/http"
 	"testing"
 
@@ -179,7 +181,8 @@ func (s *AuthSuite) TestPutRegistrations_UnprocessableEntity_InvalidMail() {
 	})
 }
 
-func (s *AuthSuite) TestPutRegistrations_OK() {
+func (s *AuthSuite) createTestRegistration() {
+	// TODO: refactor using create methods and return objects
 	event := s.InsertEvent()
 
 	_, err := s.db.Exec(`INSERT INTO days (
@@ -223,12 +226,12 @@ func (s *AuthSuite) TestPutRegistrations_OK() {
 		updated_at
 	) VALUES (
 		15,
-		'sadf',
-		'sadf',
+		'name',
+		'surname',
 		'sadf',
 		'female',
 		10,
-		0,
+		NULL,
 		'zs',
 		true,
 		'bb',
@@ -236,7 +239,7 @@ func (s *AuthSuite) TestPutRegistrations_OK() {
 		'notest',
 		'parentN',
 		'parentS',
-		'email',
+		'email@test.com',
 		'phone',
 		NOW(),
 		NOW(),
@@ -258,6 +261,17 @@ func (s *AuthSuite) TestPutRegistrations_OK() {
 		NOW()
 	)`)
 	s.Require().NoError(err)
+}
+
+func (s *AuthSuite) updateTestRegPayed(payed *int) {
+	if payed != nil {
+		_, err := s.db.Exec("UPDATE registrations SET payed = $1 WHERE id = 15", *payed)
+		s.Require().NoError(err)
+	}
+}
+
+func (s *AuthSuite) TestPutRegistrations_OK() {
+	s.createTestRegistration()
 
 	req, rec := s.NewRequest(http.MethodPut, "/api/registrations/15", echo.Map{
 		"child": echo.Map{
@@ -272,6 +286,74 @@ func (s *AuthSuite) TestPutRegistrations_OK() {
 	s.AuthorizeRequest(req, &auth.Claims{})
 	s.AssertServerResponseObject(req, rec, http.StatusAccepted, nil)
 	//TODO: test db content
+}
+
+func (s *AuthSuite) TestSendNotification_Unauthorized() {
+	req, rec := s.NewRequest(http.MethodPost, "/api/send_payment_notifications", nil)
+	s.AssertServerResponseObject(req, rec, http.StatusUnauthorized, nil)
+}
+
+func (s *AuthSuite) TestSendNotification_Forbidden() {
+	req, rec := s.NewRequest(http.MethodPost, "/api/send_payment_notifications", nil)
+	req.Header.Set(echo.HeaderAuthorization, "Bearer XXX")
+	s.AssertServerResponseObject(req, rec, http.StatusUnauthorized, nil)
+}
+
+func (s *AuthSuite) TestSendNotification_Empty() {
+	req, rec := s.NewRequest(http.MethodPost, "/api/send_payment_notifications", nil)
+	s.AuthorizeRequest(req, &auth.Claims{})
+	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
+		s.Equal(echo.Map{"sent": float64(0), "finished_all": true}, body)
+	})
+}
+
+func (s *AuthSuite) TestSendNotification_OK_NotPayed() {
+	s.createTestRegistration()
+	s.updateTestRegPayed(nil)
+
+	req, rec := s.NewRequest(http.MethodPost, "/api/send_payment_notifications", nil)
+	s.AuthorizeRequest(req, &auth.Claims{})
+	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
+		s.Equal(echo.Map{"sent": float64(0), "finished_all": true}, body)
+	})
+}
+
+func (s *AuthSuite) TestSendNotification_OK_PayedLow() {
+	s.createTestRegistration()
+	s.updateTestRegPayed(s.intRef(1))
+
+	req, rec := s.NewRequest(http.MethodPost, "/api/send_payment_notifications", nil)
+	s.AuthorizeRequest(req, &auth.Claims{})
+	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
+		s.Equal(echo.Map{"sent": float64(0), "finished_all": true}, body)
+	})
+}
+
+func (s *AuthSuite) TestSendNotification_OK_Notifying() {
+	s.createTestRegistration()
+	s.updateTestRegPayed(s.intRef(10))
+
+	s.mailer.On("NotificationMail", mock.Anything, &templates.NotificationReq{
+		Mail:      "email@test.com",
+		Name:      "name",
+		Surname:   "surname",
+		Payed:     10,
+		EventName: "Camp 42",
+	}).Return(nil)
+
+	req, rec := s.NewRequest(http.MethodPost, "/api/send_payment_notifications", nil)
+	s.AuthorizeRequest(req, &auth.Claims{})
+	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
+		s.Equal(echo.Map{"sent": float64(1), "finished_all": true}, body)
+	})
+
+	// Already notified
+	req, rec = s.NewRequest(http.MethodPost, "/api/send_payment_notifications", nil)
+	s.AuthorizeRequest(req, &auth.Claims{})
+	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
+		s.Equal(echo.Map{"sent": float64(0), "finished_all": true}, body)
+	})
+	s.mailer.AssertExpectations(s.T())
 }
 
 func (s *CommonSuite) AuthorizeRequest(req *http.Request, claims *auth.Claims) {

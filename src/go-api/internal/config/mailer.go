@@ -6,4 +6,5 @@ type Mailer struct {
 	EUBase                   bool   `envconfig:"MAILGUN_EU_BASE" required:"true"`
 	ConfirmationMailTemplate string `envconfig:"CONFIRMATION_EMAIL_TEMPLATE" required:"true"`
 	PromoMailTemplate        string `envconfig:"PROMO_EMAIL_TEMPLATE" required:"true"`
+	NotificationMailTemplate string `envconfig:"NOTIFICATION_EMAIL_TEMPLATE" required:"false"`
 }
