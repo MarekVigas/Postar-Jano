@@ -76,7 +76,7 @@ func (c *Client) PromoMail(ctx context.Context, req *templates.PromoReq) error {
 		return errors.WithStack(err)
 	}
 
-	return c.send(ctx, "Prihlasovanie na letne akcie v salezku", b.String(),
+	return c.send(ctx, "Prihlasovanie na letne akcie v Salezku", b.String(),
 		fmt.Sprintf("<%s>", req.Mail))
 }
 
