@@ -21,8 +21,8 @@ type Client struct {
 
 	confirmation *template.Template
 	promo        *template.Template
-
-	sender string
+	notification *template.Template
+	sender       string
 }
 
 func NewClient(cfg *config.Mailer, logger *zap.Logger) (*Client, error) {
@@ -41,11 +41,21 @@ func NewClient(cfg *config.Mailer, logger *zap.Logger) (*Client, error) {
 		return nil, errors.Wrap(err, "failed to load promo template")
 	}
 
+	var notificationTemplate *template.Template
+	if cfg.NotificationMailTemplate != "" {
+		var err error
+		notificationTemplate, err = templates.LoadFromFile(cfg.NotificationMailTemplate)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to load notification template")
+		}
+	}
+
 	return &Client{
 		logger:       logger,
 		mailgun:      mg,
 		confirmation: confirmationTemplate,
 		promo:        promoTemplate,
+		notification: notificationTemplate,
 		sender:       fmt.Sprintf("robot@%s", cfg.MailgunDomain),
 	}, nil
 }
@@ -67,6 +77,19 @@ func (c *Client) PromoMail(ctx context.Context, req *templates.PromoReq) error {
 	}
 
 	return c.send(ctx, "Prihlasovanie na letne akcie v salezku", b.String(),
+		fmt.Sprintf("<%s>", req.Mail))
+}
+
+func (c *Client) NotificationMail(ctx context.Context, req *templates.NotificationReq) error {
+	if c.notification == nil {
+		return errors.New("notification template not set")
+	}
+	var b bytes.Buffer
+	if err := c.notification.Execute(&b, req); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return c.send(ctx, fmt.Sprintf("Prijatie platby za %s", req.EventName), b.String(),
 		fmt.Sprintf("<%s>", req.Mail))
 }
 

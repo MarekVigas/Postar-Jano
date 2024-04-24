@@ -61,6 +61,10 @@ func (m *SenderMock) PromoMail(ctx context.Context, req *templates.PromoReq) err
 	return m.Called(ctx, req).Error(0)
 }
 
+func (m *SenderMock) NotificationMail(ctx context.Context, req *templates.NotificationReq) error {
+	return m.Called(ctx, req).Error(0)
+}
+
 func (s *CommonSuite) SetupSuite() {
 	var err error
 

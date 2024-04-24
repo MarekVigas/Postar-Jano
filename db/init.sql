@@ -90,6 +90,7 @@ CREATE TABLE "public"."registrations" (
                                           "discount" integer,
                                           "promo_code" text,
                                           "specific_symbol" integer UNIQUE DEFAULT nextval('specific_symbol_seq') NOT NULL,
+                                          "notification_sent_at" timestamp DEFAULT NULL,
                                           CONSTRAINT "registrations_id" PRIMARY KEY ("id")
 ) WITH (oids = false);
 

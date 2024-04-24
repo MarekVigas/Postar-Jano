@@ -35,6 +35,7 @@ type Registration struct {
 	Token              string      `json:"token" db:"token"`
 	PromoCode          *string     `json:"promo_code" db:"promo_code"`
 	SpecificSymbol     string      `json:"specific_symbol" db:"specific_symbol"`
+	NotificationSentAt pq.NullTime `json:"notification_sent_at" db:"notification_sent_at"`
 	UpdatedAt          time.Time   `json:"updated_at" db:"updated_at"`
 	CreatedAt          time.Time   `json:"created_at" db:"created_at"`
 	DeletedAt          pq.NullTime `json:"-" db:"deleted_at"`
@@ -110,7 +111,7 @@ type ExtendedRegistration struct {
 	Registration
 	DayNames DayNames `json:"days"     db:"days"`
 	EventID  int      `json:"eventID" db:"event_id"`
-	Title    *string  `json:"title"    db:"title"`
+	Title    string   `json:"title"    db:"title"`
 }
 
 type RegResult struct {

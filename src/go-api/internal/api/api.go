@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/MarekVigas/Postar-Jano/internal/payme"
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 	"reflect"
@@ -33,6 +34,7 @@ const tokenLifetime = 3 * time.Hour
 type EmailSender interface {
 	ConfirmationMail(ctx context.Context, req *templates.ConfirmationReq) error
 	PromoMail(ctx context.Context, req *templates.PromoReq) error
+	NotificationMail(ctx context.Context, req *templates.NotificationReq) error
 }
 
 type Authenticator interface {
@@ -106,6 +108,7 @@ func New(
 	api.GET("/registrations/:id", a.FindRegistrationByID, jwt)
 	api.DELETE("/registrations/:id", a.DeleteRegistrationByID, jwt)
 	api.PUT("/registrations/:id", a.UpdateRegistration, jwt)
+	api.POST("/send_payment_notifications", a.SendPaymentNotification, jwt)
 
 	return a
 }
@@ -459,6 +462,67 @@ func (api *API) ValidatePromoCode(c echo.Context) error {
 	res.Status = "ok"
 	res.AvailableRegistrations = availableRegistrations
 	return c.JSON(http.StatusOK, res)
+}
+
+func (api *API) SendPaymentNotification(c echo.Context) error {
+	var (
+		sent        int
+		finishedAll bool
+	)
+	ctx := c.Request().Context()
+	if err := api.repo.WithTxx(ctx, func(ctx context.Context, tx *sqlx.Tx) error {
+		regs, err := api.repo.ListRegistrationsWithoutNotification(ctx, tx)
+		if err != nil {
+			api.logger.Error("Failed to list registrations", zap.Error(err))
+		}
+		for i := range regs {
+			notified, err := api.notifyRegistration(ctx, tx, &regs[i])
+			if err != nil {
+				api.logger.Error("Error sending notification", zap.Error(err), zap.Int("id", regs[i].ID))
+				// We want to ignore the error and commit the tx
+				return nil
+			}
+			if notified {
+				sent++
+			}
+		}
+		finishedAll = true
+		return nil
+	}); err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, echo.Map{"sent": sent, "finished_all": finishedAll})
+}
+
+func (api *API) notifyRegistration(ctx context.Context, tx *sqlx.Tx, reg *model.ExtendedRegistration) (bool, error) {
+	if reg.Payed == nil {
+		return false, nil
+	}
+	amountToPay := reg.AmountToPay()
+	payed := *reg.Payed
+	if payed < amountToPay {
+		api.logger.Info(
+			"Lower amount payed for registration",
+			zap.Int("id", reg.ID),
+			zap.Int("payed", payed),
+			zap.Int("amount_to_pay", amountToPay),
+		)
+		return false, nil
+	}
+	if err := api.sender.NotificationMail(ctx, &templates.NotificationReq{
+		Mail:      reg.Email,
+		Name:      reg.Name,
+		Surname:   reg.Surname,
+		EventName: reg.Title,
+		Payed:     payed,
+	}); err != nil {
+		return false, err
+	}
+	if err := api.repo.MarkRegistrationAsNotified(ctx, tx, reg.ID); err != nil {
+		return false, err
+	}
+	return true, nil
+
 }
 
 func (api *API) generateToken(owner *model.Owner) (string, error) {
