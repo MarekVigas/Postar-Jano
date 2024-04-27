@@ -251,7 +251,7 @@ func (s *RegistrationSuite) TestRegister_NotActive_Promo_Simple() {
 func (s *RegistrationSuite) TestRegister_OK() {
 	const (
 		name     = "dano"
-		surname  = "zharmanca"
+		surname  = "Žščťžzharmanca"
 		pname    = "janko"
 		psurname = "hrasko"
 		gender   = "male"
