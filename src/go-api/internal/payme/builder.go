@@ -64,7 +64,7 @@ func (b *Builder) Build() (string, error) {
 	v.Set(paymentIdentificationKey, fmt.Sprintf("/VS%s/SS%s/KS%s", b.paymentReference, b.specificSymbol, ""))
 	v.Set(creditorsKey, "salezko")
 	if b.note != "" {
-		v.Set(messageKey, regexp.MustCompile(`[^a-zA-Z0-9 ]+`).ReplaceAllString(b.note, ""))
+		v.Set(messageKey, regexp.MustCompile(`[^\p{L}\p{N} ]+`).ReplaceAllString(b.note, ""))
 	}
 	return "https://payme.sk?" + v.Encode(), nil
 
