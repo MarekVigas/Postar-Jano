@@ -507,7 +507,6 @@ func (api *API) notifyRegistration(ctx context.Context, tx *sqlx.Tx, reg *model.
 			zap.Int("payed", payed),
 			zap.Int("amount_to_pay", amountToPay),
 		)
-		return false, nil
 	}
 	if err := api.sender.NotificationMail(ctx, &templates.NotificationReq{
 		Mail:      reg.Email,
