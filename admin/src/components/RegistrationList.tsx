@@ -11,6 +11,7 @@ import CopyButton from "./CopyButton";
 
 const RegistrationList:React.FC = () :JSX.Element => {
     const [filter, setFilter] = useState<string>("")
+    const [showNotPayedOnly, setShowNotPayedOnly] = useState<boolean>(false)
     const [registrations, setRegistrations] = useState<IExtendedRegistration[]>([])
     const [fields, setFields] = useStorage<IViewFields>("VIEW_FILTERS",{
         "id": { display: "ID", show: true},
@@ -35,6 +36,7 @@ const RegistrationList:React.FC = () :JSX.Element => {
         "amount": {display: "Suma", show:false},
         "payed": {display: "Zaplatene", show:false},
         "discount": {display: "Zlava", show:false},
+        "specific_symbol": {display: "Špecifický symbol", show:false},
 
         "title": { display: "Akcia", show: true},
         "days": { display: "Dni", show: true},
@@ -58,7 +60,13 @@ const RegistrationList:React.FC = () :JSX.Element => {
     const displayedRegistrations = ():IExtendedRegistration[] => {
         const eventID = parseInt(event || "")
 
-        const byEvent = registrations.filter(r => (!eventID) || r.eventID === eventID)
+        const byEvent = registrations.filter(r => (!eventID) || r.eventID === eventID).filter(r => {
+            if (showNotPayedOnly) {
+                return r.payed ? false : true
+            } else {
+                return true
+            }
+        })
 
         if (filter === "") {
             return byEvent
@@ -68,7 +76,8 @@ const RegistrationList:React.FC = () :JSX.Element => {
         return byEvent.filter(r =>
             r.name.toLowerCase().includes(lowerFilter) ||
             r.surname.toLowerCase().includes(lowerFilter) ||
-            r.email.toLowerCase().includes(lowerFilter)
+            r.email.toLowerCase().includes(lowerFilter) ||
+            r.specific_symbol.toLowerCase().includes(lowerFilter)
         )
     }
 
@@ -84,6 +93,9 @@ const RegistrationList:React.FC = () :JSX.Element => {
         return (
             <>
                 <button onClick={()=>setExpandViewFilter(true)}>Zobrazené stĺpce</button>
+                <button onClick={()=>setShowNotPayedOnly(!showNotPayedOnly)}>
+                    {showNotPayedOnly ? "Zobrazit všetky" : "Zobrazit len nezaplatené"}
+                </button>
             </>
         )
     }
@@ -136,7 +148,7 @@ const RegistrationList:React.FC = () :JSX.Element => {
                 handleClose={() => {setShowEdit(false)}}
             />}
             {renderViewFilter()}
-           <CopyButton selector="table"/>
+            <CopyButton selector="table"/>
             <Table>
                 <thead>
                 {isShown("id") && <th>ID</th>}
@@ -162,6 +174,7 @@ const RegistrationList:React.FC = () :JSX.Element => {
                 {isShown("phone") && <th>Telefon</th>}
 
 
+                {isShown("specific_symbol") && <th>Specificky symbol</th>}
                 {isShown("amount") && <th>Suma</th>}
                 {isShown("payed") && <th>Zaplatene</th>}
                 {isShown("discount") && <th>Zlava</th>}

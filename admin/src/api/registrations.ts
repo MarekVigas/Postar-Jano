@@ -24,6 +24,7 @@ export interface IExtendedRegistration {
     amount :number;
     payed :number|null;
     discount :number|null
+    specific_symbol :string;
 
     eventID :number;
     title: string;

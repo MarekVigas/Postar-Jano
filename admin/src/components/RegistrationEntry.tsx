@@ -36,6 +36,7 @@ const RegistrationEntry :React.FC<Props> = ({fields, registration, deleteRegByID
         amount,
         payed,
         discount,
+        specific_symbol
     } = registration
 
     const isShown = (name :string): boolean => {
@@ -68,8 +69,8 @@ const RegistrationEntry :React.FC<Props> = ({fields, registration, deleteRegByID
             {isShown("title") && <td>{title}</td>}
             {isShown("days") &&
             <td>{days.map((d) => (
-                    <span key={d.id}>
-                   {d.description}
+                <span key={d.id}>
+                    {d.description}
                 </span>
                 )
             )}</td>
@@ -80,10 +81,10 @@ const RegistrationEntry :React.FC<Props> = ({fields, registration, deleteRegByID
             {isShown("email") && <td>{email}</td>}
             {isShown("phone") && <td>{phone}</td>}
 
-
+            {isShown("specific_symbol") && <td>{specific_symbol}</td>}
             {isShown("amount") && <td>{amount}€</td>}
-            {isShown("payed") && <td>{payed}€</td>}
-            {isShown("discount") && <td>{discount}€</td>}
+            {isShown("payed") && <td>{payed ? `${payed}€`: ''}</td>}
+            {isShown("discount") && <td>{discount ? `${discount}€` : ''}</td>}
 
             {isShown("buttons") && <td>
             <button onClick={() => {
