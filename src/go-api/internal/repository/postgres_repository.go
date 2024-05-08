@@ -495,7 +495,8 @@ func (repo *PostgresRepo) listRegistrations(ctx context.Context, db sqlx.Queryer
 			r.updated_at,
 			r.discount,
 			r.promo_code,
-			r.notification_sent_at
+			r.notification_sent_at,
+			r.specific_symbol
 		FROM registrations r
 		LEFT JOIN signups s ON r.id = s.registration_id
 		LEFT JOIN days d ON s.day_id = d.id
