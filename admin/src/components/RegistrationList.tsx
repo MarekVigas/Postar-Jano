@@ -35,6 +35,7 @@ const RegistrationList:React.FC = () :JSX.Element => {
         "amount": {display: "Suma", show:false},
         "payed": {display: "Zaplatene", show:false},
         "discount": {display: "Zlava", show:false},
+        "specific_symbol": {display: "Špecifický symbol", show:false},
 
         "title": { display: "Akcia", show: true},
         "days": { display: "Dni", show: true},
@@ -136,7 +137,7 @@ const RegistrationList:React.FC = () :JSX.Element => {
                 handleClose={() => {setShowEdit(false)}}
             />}
             {renderViewFilter()}
-           <CopyButton selector="table"/>
+            <CopyButton selector="table"/>
             <Table>
                 <thead>
                 {isShown("id") && <th>ID</th>}
@@ -162,6 +163,7 @@ const RegistrationList:React.FC = () :JSX.Element => {
                 {isShown("phone") && <th>Telefon</th>}
 
 
+                {isShown("specific_symbol") && <th>Specificky symbol</th>}
                 {isShown("amount") && <th>Suma</th>}
                 {isShown("payed") && <th>Zaplatene</th>}
                 {isShown("discount") && <th>Zlava</th>}
