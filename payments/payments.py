@@ -25,39 +25,55 @@ transactions_raw = account.get_transactions()["transactions"]["booked"]
 
 transactions = []
 
+bank = requisition["institution_id"]
+
+# print(json.dumps(transactions_raw, indent=2))
+
 for transaction in transactions_raw:
+    if transaction.get("endToEndId") is None:
+        print("Skipping transaction without endToEndId")
+        continue
     e2eId = transaction["endToEndId"]
 
     # regex match
-    p = re.compile("^\?VS(?P<vs>\d{2})SS(?P<ss>\d{6})KS")
+    if bank == "PRIMABANK_KOMASK2X":
+        p = re.compile("^\/VS(?P<vs>\d{2})/SS(?P<ss>\d{6})/KS")
+        ref = transaction["transactionId"]
+    elif bank == "FIO_FIOZSKBA":
+        p = re.compile("^\?VS(?P<vs>\d{2})SS(?P<ss>\d{6})KS")
+        ref = transaction["entryReference"]
+    else:
+        print("Unknown bank")
+        exit(1)
+
     m = p.match(e2eId)
 
     if m is None:
-        print(f"Skipping transaction with e2eId: {e2eId} ref: {transaction['entryReference']}")
+        print(f"Skipping transaction with e2eId: {e2eId} ref: {ref}")
         continue
 
     vs = m.group("vs")
     ss = m.group("ss")
     if vs not in ["11", "12", "13", '14']:
-        print(f"Skipping transaction with not allowed VS {vs} e2eId: {e2eId} ref: {transaction['entryReference']}")
+        print(f"Skipping transaction with not allowed VS {vs} e2eId: {e2eId} ref: {ref}")
         continue
 
     currency = transaction["transactionAmount"]["currency"]
 
     if currency != "EUR":
-        print(f"Skipping transaction with not allowed currency {currency} ref: {transaction['entryReference']}")
+        print(f"Skipping transaction with not allowed currency {currency} ref: {ref}")
         continue
 
     float_amount = float(transaction["transactionAmount"]["amount"])
     int_amount = int(float_amount)
 
     if float_amount != float(int_amount):
-        print(f"Skipping transaction with not whole amount {float_amount} ref: {transaction['entryReference']}")
+        print(f"Skipping transaction with not whole amount {float_amount} ref: {ref}")
         continue
 
     transactions.append(
         {
-            "ref": transaction["entryReference"],
+            "ref": ref,
             "date": transaction["bookingDate"],
             "amount": int_amount,
             "currency": transaction["transactionAmount"]["currency"],
