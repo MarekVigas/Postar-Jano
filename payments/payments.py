@@ -1,4 +1,5 @@
-import json
+from datetime import datetime
+import pandas as pd
 import os
 import re
 from nordigen import NordigenClient
@@ -17,76 +18,80 @@ client = NordigenClient(
 
 client.generate_token()
 
-requisition = client.requisition.get_requisition_by_id(os.environ.get("NORDIGEN_REQUISITION_ID"))
+requisitions = os.environ.get("NORDIGEN_REQUISITIONS").split(",")
+matched_transactions = []
+unmatched_transactions = []
 
-account = client.account_api(id=requisition["accounts"][0])
+for requisition_id in requisitions:
+    requisition = client.requisition.get_requisition_by_id(requisition_id)
 
-transactions_raw = account.get_transactions()["transactions"]["booked"]
+    account = client.account_api(id=requisition["accounts"][0])
 
-transactions = []
+    transactions_raw = account.get_transactions()["transactions"]["booked"]
 
-bank = requisition["institution_id"]
+    bank = requisition["institution_id"]
 
-# print(json.dumps(transactions_raw, indent=2))
+    for transaction in transactions_raw:
+        if transaction.get("endToEndId") is None:
+            print("Skipping transaction without endToEndId")
+            unmatched_transactions.append(transaction)
+            continue
+        e2eId = transaction["endToEndId"]
 
-for transaction in transactions_raw:
-    if transaction.get("endToEndId") is None:
-        print("Skipping transaction without endToEndId")
-        continue
-    e2eId = transaction["endToEndId"]
+        # regex match
+        if bank == "PRIMABANK_KOMASK2X":
+            p = re.compile("^\/VS0{0,8}(?P<vs>\d{2})/SS0{0,4}(?P<ss>100\d{3})/KS")
+            ref = transaction["transactionId"]
+        elif bank == "FIO_FIOZSKBA":
+            p = re.compile("^\?VS0{0,8}(?P<vs>\d{2})SS0{0,4}(?P<ss>100\d{3})KS")
+            ref = transaction["entryReference"]
+        else:
+            print("Unknown bank")
+            exit(1)
 
-    # regex match
-    if bank == "PRIMABANK_KOMASK2X":
-        p = re.compile("^\/VS(?P<vs>\d{2})/SS(?P<ss>\d{6})/KS")
-        ref = transaction["transactionId"]
-    elif bank == "FIO_FIOZSKBA":
-        p = re.compile("^\?VS(?P<vs>\d{2})SS(?P<ss>\d{6})KS")
-        ref = transaction["entryReference"]
-    else:
-        print("Unknown bank")
-        exit(1)
+        m = p.match(e2eId)
 
-    m = p.match(e2eId)
+        if m is None:
+            print(f"Skipping transaction with e2eId: {e2eId} ref: {ref}")
+            unmatched_transactions.append(transaction)
+            continue
 
-    if m is None:
-        print(f"Skipping transaction with e2eId: {e2eId} ref: {ref}")
-        continue
+        vs = m.group("vs")
+        ss = m.group("ss")
+        if vs not in ["11", "12", "13", '14']:
+            print(f"Skipping transaction with not allowed VS {vs} e2eId: {e2eId} ref: {ref}")
+            unmatched_transactions.append(transaction)
+            continue
 
-    vs = m.group("vs")
-    ss = m.group("ss")
-    if vs not in ["11", "12", "13", '14']:
-        print(f"Skipping transaction with not allowed VS {vs} e2eId: {e2eId} ref: {ref}")
-        continue
+        currency = transaction["transactionAmount"]["currency"]
 
-    currency = transaction["transactionAmount"]["currency"]
+        if currency != "EUR":
+            print(f"Skipping transaction with not allowed currency {currency} ref: {ref}")
+            unmatched_transactions.append(transaction)
+            continue
 
-    if currency != "EUR":
-        print(f"Skipping transaction with not allowed currency {currency} ref: {ref}")
-        continue
+        float_amount = float(transaction["transactionAmount"]["amount"])
+        int_amount = int(float_amount)
 
-    float_amount = float(transaction["transactionAmount"]["amount"])
-    int_amount = int(float_amount)
+        if float_amount != float(int_amount):
+            print(f"Skipping transaction with not whole amount {float_amount} ref: {ref}")
+            unmatched_transactions.append(transaction)
+            continue
 
-    if float_amount != float(int_amount):
-        print(f"Skipping transaction with not whole amount {float_amount} ref: {ref}")
-        continue
-
-    transactions.append(
-        {
-            "ref": ref,
-            "date": transaction["bookingDate"],
-            "amount": int_amount,
-            "currency": transaction["transactionAmount"]["currency"],
-            "vs": m.group("vs"),
-            "ss": m.group("ss"),
-        }
-    )
-
-print(json.dumps(transactions, indent=2))
+        matched_transactions.append(
+            {
+                "ref": ref,
+                "date": transaction["bookingDate"],
+                "amount": int_amount,
+                "currency": transaction["transactionAmount"]["currency"],
+                "vs": m.group("vs"),
+                "ss": m.group("ss"),
+            }
+        )
 
 cursor = db_conn.cursor()
 
-for transaction in transactions:
+for transaction in matched_transactions:
     cursor.execute("select * from registrations_with_event where payed is null and specific_symbol = %s and payment_reference = %s", (transaction["ss"], transaction["vs"]))
     row = cursor.fetchone()
     if row is None:
@@ -97,3 +102,10 @@ for transaction in transactions:
 
 db_conn.commit()
 db_conn.close()
+
+unmatched_df = pd.json_normalize(unmatched_transactions)
+
+unmatched_df['transactionAmount.amount'] = unmatched_df['transactionAmount.amount'].astype(float)
+unmatched_df = unmatched_df[unmatched_df['transactionAmount.amount'] > 0]
+
+unmatched_df.to_csv(f"unmatched_{datetime.now()}.csv", encoding='utf-8', index=False)
