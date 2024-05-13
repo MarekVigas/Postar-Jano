@@ -1,0 +1,5 @@
+jobs:
+  - name: match-payments
+    command: python3 payments.py
+    shell: /bin/bash
+    schedule: "*/15 7-22 * * *"
