@@ -1,0 +1,273 @@
+{
+  "root": {
+    "type": "EmailLayout",
+    "data": {
+      "backdropColor": "#F5F5F5",
+      "canvasColor": "#FFFFFF",
+      "textColor": "#242424",
+      "fontFamily": "MODERN_SANS",
+      "childrenIds": [
+        "block-1709571212684",
+        "block-1713990424548",
+        "block-1709571228545",
+        "block-1709571234315",
+        "block-1713990211247",
+        "block-1713990232165",
+        "block-1713990760492",
+        "block-1713990793731",
+        "block-1713990325588",
+        "block-1713990738462",
+        "block-1709571302968",
+        "block-1713991151923",
+        "block-1713991155072",
+        "block-1713991192964"
+      ]
+    }
+  },
+  "block-1709571212684": {
+    "type": "Image",
+    "data": {
+      "style": {
+        "padding": {
+          "top": 24,
+          "bottom": 24,
+          "right": 24,
+          "left": 24
+        },
+        "backgroundColor": "#454545",
+        "textAlign": "center"
+      },
+      "props": {
+        "url": "https://sbb.sk/wp-content/uploads/2017/03/sbb-logo-web.png",
+        "alt": "Salezko Logo",
+        "linkHref": null,
+        "contentAlignment": "middle"
+      }
+    }
+  },
+  "block-1709571228545": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 20,
+          "bottom": 0,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Dobrý deň,"
+      }
+    }
+  },
+  "block-1709571234315": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 0,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "pevne veríme, že ste už zaregistrovali na našej webke ponuku letných táborov Salezka - sbb.sk/leto2024. Na základe skúsenosti z minulých rokov, keď nahlasovanie trvalo niekoľko minút a značná časť našich členov a pravidelných stretkárov sa nestihli prihlásiť, sme pristúpili k malej úprave. Vaše dieťa, ktoré je na stretku a má členské v Salezku, má možnosť prihlásiť sa na letné akcie v Salezku v prvej vlne prihlasovania."
+      }
+    }
+  },
+  "block-1709571302968": {
+    "type": "Button",
+    "data": {
+      "style": {
+        "fontSize": 20,
+        "fontWeight": "normal",
+        "textAlign": "center",
+        "padding": {
+          "top": 16,
+          "bottom": 24,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "buttonBackgroundColor": "#0079cc",
+        "buttonStyle": "rectangle",
+        "fullWidth": false,
+        "size": "large",
+        "text": "Použiť promo kód",
+        "url": "https://leto.salezko.sk/events?promo={{promo}}"
+      }
+    }
+  },
+  "block-1713990211247": {
+    "type": "Divider",
+    "data": {
+      "style": {
+        "padding": {
+          "top": 16,
+          "right": 0,
+          "bottom": 16,
+          "left": 0
+        }
+      },
+      "props": {
+        "lineColor": "#CCCCCC"
+      }
+    }
+  },
+  "block-1713990232165": {
+    "type": "Heading",
+    "data": {
+      "props": {
+        "text": "Ako to bude prebiehať?"
+      },
+      "style": {
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      }
+    }
+  },
+  "block-1713990325588": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Môžete sa prihlásiť na tie akcie, ktoré sú určené pre vaše deti. Promo kód môžete použiť maximálne {{pocet}} krát. Kód prosím neposúvajte ďalej, je určený len pre vaše deti. Ak sa zistí, že ste sa s kódom pokúšali prihlásiť niekoho iného ako vaše dieťa, alebo iného nečlena - bude následne zmazané vaše dieťa aj daný prihlásený."
+      }
+    }
+  },
+  "block-1713990424548": {
+    "type": "Heading",
+    "data": {
+      "props": {
+        "text": "Letné akcie v Salezku",
+        "level": "h1"
+      },
+      "style": {
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      }
+    }
+  },
+  "block-1713990738462": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "V nedeľu 28.4. o 20:00 sa otvára druhá vlna prihlasovania na doplnenie voľných miest pre ostatných záujemcov."
+      }
+    }
+  },
+  "block-1713990760492": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "V sobotu 27.4. o 20:00 sa spúšťa prihlasovanie pre tých, čo majú zaplatené členské."
+      }
+    }
+  },
+  "block-1713990793731": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "bold",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Váš promo kód: {{promokod}}"
+      }
+    }
+  },
+  "block-1713991151923": {
+    "type": "Divider",
+    "data": {
+      "style": {
+        "padding": {
+          "top": 16,
+          "right": 0,
+          "bottom": 16,
+          "left": 0
+        }
+      },
+      "props": {
+        "lineColor": "#CCCCCC"
+      }
+    }
+  },
+  "block-1713991155072": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Ďakujeme vám za spoluprácu a prosíme vás o modlitby za prípravu a priebeh letných podujatí v Salezku."
+      }
+    }
+  },
+  "block-1713991192964": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "S pozdravom,\nsaleziáni, saleziánky, animátori."
+      }
+    }
+  }
+}

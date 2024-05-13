@@ -1,0 +1,485 @@
+{
+  "root": {
+    "type": "EmailLayout",
+    "data": {
+      "backdropColor": "#F5F5F5",
+      "canvasColor": "#FFFFFF",
+      "textColor": "#242424",
+      "fontFamily": "MODERN_SANS",
+      "childrenIds": [
+        "block-1709571212684",
+        "block-1713990424548",
+        "block-1709571228545",
+        "block-1709571234315",
+        "block-1713990211247",
+        "block-1713990232165",
+        "block-1713990738462",
+        "block-1714116308717",
+        "block-1714116346874",
+        "block-1713991151923",
+        "block-1714058109762",
+        "block-1714058178155",
+        "block-1714210552106",
+        "block-1714116573181",
+        "block-1714116820708",
+        "block-1714116853047",
+        "block-1714116902693",
+        "block-1714117039112",
+        "block-1714207410822",
+        "block-1714207756347",
+        "block-1714058213199",
+        "block-1714058164762",
+        "block-1714058167995",
+        "block-1714058189299",
+        "block-1714117166165",
+        "block-1714058198023"
+      ]
+    }
+  },
+  "block-1709571212684": {
+    "type": "Image",
+    "data": {
+      "style": {
+        "padding": {
+          "top": 24,
+          "bottom": 24,
+          "right": 24,
+          "left": 24
+        },
+        "backgroundColor": "#454545",
+        "textAlign": "center"
+      },
+      "props": {
+        "url": "https://sbb.sk/wp-content/uploads/2017/03/sbb-logo-web.png",
+        "alt": "Salezko Logo",
+        "linkHref": null,
+        "contentAlignment": "middle"
+      }
+    }
+  },
+  "block-1709571228545": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 20,
+          "bottom": 0,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Dobrý deň,"
+      }
+    }
+  },
+  "block-1709571234315": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 0,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "úspešne ste prihlásili svoje dieťa {{ .Name }} {{ .Surname }} na {{ .EventName }}"
+      }
+    }
+  },
+  "block-1713990211247": {
+    "type": "Divider",
+    "data": {
+      "style": {
+        "padding": {
+          "top": 16,
+          "right": 0,
+          "bottom": 16,
+          "left": 0
+        }
+      },
+      "props": {
+        "lineColor": "#CCCCCC"
+      }
+    }
+  },
+  "block-1713990232165": {
+    "type": "Heading",
+    "data": {
+      "props": {
+        "text": "Vaše údaje"
+      },
+      "style": {
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      }
+    }
+  },
+  "block-1713990424548": {
+    "type": "Heading",
+    "data": {
+      "props": {
+        "text": "Prijatie prihlášky na {{ .EventName }}",
+        "level": "h1"
+      },
+      "style": {
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      }
+    }
+  },
+  "block-1713990738462": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Meno: {{ .Name }} {{ .Surname }}\n"
+      }
+    }
+  },
+  "block-1713991151923": {
+    "type": "Divider",
+    "data": {
+      "style": {
+        "padding": {
+          "top": 16,
+          "right": 0,
+          "bottom": 16,
+          "left": 0
+        }
+      },
+      "props": {
+        "lineColor": "#CCCCCC"
+      }
+    }
+  },
+  "block-1714058109762": {
+    "type": "Heading",
+    "data": {
+      "props": {
+        "text": "Pokyny k platbe"
+      },
+      "style": {
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      }
+    }
+  },
+  "block-1714058164762": {
+    "type": "Divider",
+    "data": {
+      "style": {
+        "padding": {
+          "top": 16,
+          "right": 0,
+          "bottom": 16,
+          "left": 0
+        }
+      },
+      "props": {
+        "lineColor": "#CCCCCC"
+      }
+    }
+  },
+  "block-1714058167995": {
+    "type": "Heading",
+    "data": {
+      "props": {
+        "text": "Kontakt"
+      },
+      "style": {
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      }
+    }
+  },
+  "block-1714058178155": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Tento rok platba osobne nie je možná."
+      }
+    }
+  },
+  "block-1714058189299": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "{{ .Owner }}"
+      }
+    }
+  },
+  "block-1714058198023": {
+    "type": "Image",
+    "data": {
+      "style": {
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "url": "{{ .PhotoURL }}",
+        "alt": "{{ .Owner }}",
+        "linkHref": null,
+        "contentAlignment": "middle"
+      }
+    }
+  },
+  "block-1714058213199": {
+    "type": "Button",
+    "data": {
+      "style": {
+        "textAlign": "center",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "buttonBackgroundColor": "#2563EB",
+        "buttonStyle": "rounded",
+        "size": "large",
+        "text": "Zaplatiť cez payme",
+        "url": "{{ .Payment.Link }}"
+      }
+    }
+  },
+  "block-1714116308717": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 0,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Lieky: {{ .Pills }}"
+      }
+    }
+  },
+  "block-1714116346874": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 0,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Zdravotné obmedzenia: {{ .Restrictions }}"
+      }
+    }
+  },
+  "block-1714116573181": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Za prihlášku môžete zaplatiť iba prevodom na účet. Ak máte viacero prihlášok uhradťe každú samostatným prevodom."
+      }
+    }
+  },
+  "block-1714116820708": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "IBAN: {{ .Payment.IBAN }}"
+      }
+    }
+  },
+  "block-1714116853047": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Variabilný symbol: {{ .Payment.PaymentReference }}"
+      }
+    }
+  },
+  "block-1714116902693": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Špecifický symbol: {{ .Payment.SpecificSymbol }}"
+      }
+    }
+  },
+  "block-1714117039112": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Suma na úhradu: {{ .Sum }} €"
+      }
+    }
+  },
+  "block-1714117166165": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "{{ .Text }}"
+      }
+    }
+  },
+  "block-1714207410822": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "bold",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Tip: Tento email si môžete otvoriť na mobile a kliknúť na zaplatiť cez payme. Všetky údaje potrebné k platbe sa prenesú priamo do aplikácie vašej banky. "
+      }
+    }
+  },
+  "block-1714207756347": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Môže sa stať, že vaša banka payme zatiaľ nepodporuje. Našu službu môžete využívať aj tak. Vytvorený odkaz vás presmeruje na stránku s platobným QR kódom – PAY by square. Platbu uhradíte jednoducho jeho naskenovaním."
+      }
+    }
+  },
+  "block-1714210552106": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "fontWeight": "normal",
+        "padding": {
+          "top": 16,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Prihláška je platná iba ak ju zaplatíte do 14 dní od registrácie."
+      }
+    }
+  }
+}
