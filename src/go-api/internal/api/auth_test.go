@@ -322,10 +322,18 @@ func (s *AuthSuite) TestSendNotification_OK_PayedLow() {
 	s.createTestRegistration()
 	s.updateTestRegPayed(s.intRef(1))
 
+	s.mailer.On("NotificationMail", mock.Anything, &templates.NotificationReq{
+		Mail:      "email@test.com",
+		Name:      "name",
+		Surname:   "surname",
+		Payed:     1,
+		EventName: "Camp 42",
+	}).Return(nil)
+
 	req, rec := s.NewRequest(http.MethodPost, "/api/send_payment_notifications", nil)
 	s.AuthorizeRequest(req, &auth.Claims{})
 	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
-		s.Equal(echo.Map{"sent": float64(0), "finished_all": true}, body)
+		s.Equal(echo.Map{"sent": float64(1), "finished_all": true}, body)
 	})
 }
 
