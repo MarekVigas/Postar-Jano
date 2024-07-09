@@ -17,6 +17,7 @@ services:
     volumes:
       - /root/salezko/promo.html:/tmp/promo.html
       - /root/salezko/confirmation.html:/tmp/confirmation.html
+      - /root/salezko/payment.html:/tmp/payment.html
     env_file: api.env
     deploy:
       # replicas: 2
