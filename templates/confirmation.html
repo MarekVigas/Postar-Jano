@@ -1,0 +1,157 @@
+<!doctype html>
+<html>
+  <body>
+    <div
+      style='background-color:#F5F5F5;color:#242424;font-family:"Helvetica Neue", "Arial Nova", "Nimbus Sans", Arial, sans-serif;font-size:16px;font-weight:400;letter-spacing:0.15008px;line-height:1.5;margin:0;padding:32px 0;min-height:100%;width:100%'
+    >
+      <table
+        align="center"
+        width="100%"
+        style="margin:0 auto;max-width:600px;background-color:#FFFFFF"
+        role="presentation"
+        cellspacing="0"
+        cellpadding="0"
+        border="0"
+      >
+        <tbody>
+          <tr style="width:100%">
+            <td>
+              <div
+                style="padding:24px 24px 24px 24px;background-color:#454545;text-align:center"
+              >
+                <img
+                  alt="Salezko Logo"
+                  src="https://sbb.sk/wp-content/uploads/2017/03/sbb-logo-web.png"
+                  style="outline:none;border:none;text-decoration:none;vertical-align:middle;display:inline-block;max-width:100%"
+                />
+              </div>
+              <h1
+                style="font-weight:bold;margin:0;font-size:32px;padding:16px 24px 16px 24px"
+              >
+                Prijatie prihlášky na {{ .EventName }}
+              </h1>
+              <div style="font-weight:normal;padding:20px 24px 0px 24px">
+                Dobrý deň,
+              </div>
+              <div style="font-weight:normal;padding:0px 24px 16px 24px">
+                úspešne ste prihlásili svoje dieťa {{ .Name }} {{ .Surname }} na
+                {{ .EventName }}
+              </div>
+              <div style="padding:16px 0px 16px 0px">
+                <hr
+                  style="width:100%;border:none;border-top:1px solid #CCCCCC;margin:0"
+                />
+              </div>
+              <h2
+                style="font-weight:bold;margin:0;font-size:24px;padding:16px 24px 16px 24px"
+              >
+                Vaše údaje
+              </h2>
+              <div style="font-weight:normal;padding:16px 24px 16px 24px">
+                Meno: {{ .Name }} {{ .Surname }}
+              </div>
+              <div style="font-weight:normal;padding:0px 24px 16px 24px">
+                Lieky: {{ .Pills }}
+              </div>
+              <div style="font-weight:normal;padding:0px 24px 16px 24px">
+                Zdravotné obmedzenia: {{ .Restrictions }}
+              </div>
+              <div style="padding:16px 0px 16px 0px">
+                <hr
+                  style="width:100%;border:none;border-top:1px solid #CCCCCC;margin:0"
+                />
+              </div>
+              <h2
+                style="font-weight:bold;margin:0;font-size:24px;padding:16px 24px 16px 24px"
+              >
+                Pokyny k platbe
+              </h2>
+              <div style="font-weight:normal;padding:16px 24px 16px 24px">
+                Tento rok platba osobne nie je možná.
+              </div>
+              <div style="font-weight:normal;padding:16px 24px 16px 24px">
+                Prihláška je platná iba ak ju zaplatíte do 14 dní od
+                registrácie.
+              </div>
+              <div style="font-weight:normal;padding:16px 24px 16px 24px">
+                Za prihlášku môžete zaplatiť iba prevodom na účet. Ak máte
+                viacero prihlášok uhradťe každú samostatným prevodom.
+              </div>
+              <div style="font-weight:normal;padding:16px 24px 16px 24px">
+                IBAN: {{ .Payment.IBAN }}
+              </div>
+              <div style="font-weight:normal;padding:16px 24px 16px 24px">
+                Variabilný symbol: {{ .Payment.PaymentReference }}
+              </div>
+              <div style="font-weight:normal;padding:16px 24px 16px 24px">
+                Špecifický symbol: {{ .Payment.SpecificSymbol }}
+              </div>
+              <div style="font-weight:normal;padding:16px 24px 16px 24px">
+                Suma na úhradu: {{ .Sum }} €
+              </div>
+              <div style="font-weight:bold;padding:16px 24px 16px 24px">
+                Tip: Tento email si môžete otvoriť na mobile a kliknúť na
+                zaplatiť cez payme. Všetky údaje potrebné k platbe sa prenesú
+                priamo do aplikácie vašej banky.
+              </div>
+              <div style="font-weight:normal;padding:16px 24px 16px 24px">
+                Môže sa stať, že vaša banka payme zatiaľ nepodporuje. Našu
+                službu môžete využívať aj tak. Vytvorený odkaz vás presmeruje na
+                stránku s platobným QR kódom – PAY by square. Platbu uhradíte
+                jednoducho jeho naskenovaním.
+              </div>
+              <div style="text-align:center;padding:16px 24px 16px 24px">
+                <a
+                  href="{{ .Payment.Link }}"
+                  style="color:#FFFFFF;font-size:16px;font-weight:bold;background-color:#2563EB;border-radius:4px;display:inline-block;padding:16px 32px;text-decoration:none"
+                  target="_blank"
+                  ><span
+                    ><!--[if mso
+                      ]><i
+                        style="letter-spacing: 32px;mso-font-width:-100%;mso-text-raise:48"
+                        hidden
+                        >&nbsp;</i
+                      ><!
+                    [endif]--></span
+                  ><span>Zaplatiť cez payme</span
+                  ><span
+                    ><!--[if mso
+                      ]><i
+                        style="letter-spacing: 32px;mso-font-width:-100%"
+                        hidden
+                        >&nbsp;</i
+                      ><!
+                    [endif]--></span
+                  ></a
+                >
+              </div>
+              <div style="padding:16px 0px 16px 0px">
+                <hr
+                  style="width:100%;border:none;border-top:1px solid #CCCCCC;margin:0"
+                />
+              </div>
+              <h2
+                style="font-weight:bold;margin:0;font-size:24px;padding:16px 24px 16px 24px"
+              >
+                Kontakt
+              </h2>
+              <div style="font-weight:normal;padding:16px 24px 16px 24px">
+                {{ .Owner }}
+              </div>
+              <div style="font-weight:normal;padding:16px 24px 16px 24px">
+                {{ .Text }}
+              </div>
+              <div style="padding:16px 24px 16px 24px">
+                <img
+                  alt="{{ .Owner }}"
+                  src="{{ .PhotoURL }}"
+                  style="outline:none;border:none;text-decoration:none;vertical-align:middle;display:inline-block;max-width:100%"
+                />
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

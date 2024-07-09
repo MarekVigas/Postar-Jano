@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+  <body>
+    <div
+      style='background-color:#F5F5F5;color:#242424;font-family:"Helvetica Neue", "Arial Nova", "Nimbus Sans", Arial, sans-serif;font-size:16px;font-weight:400;letter-spacing:0.15008px;line-height:1.5;margin:0;padding:32px 0;min-height:100%;width:100%'
+    >
+      <table
+        align="center"
+        width="100%"
+        style="margin:0 auto;max-width:600px;background-color:#FFFFFF"
+        role="presentation"
+        cellspacing="0"
+        cellpadding="0"
+        border="0"
+      >
+        <tbody>
+          <tr style="width:100%">
+            <td>
+              <div
+                style="padding:24px 24px 24px 24px;background-color:#454545;text-align:center"
+              >
+                <img
+                  alt="Salezko Logo"
+                  src="https://sbb.sk/wp-content/uploads/2017/03/sbb-logo-web.png"
+                  style="outline:none;border:none;text-decoration:none;vertical-align:middle;display:inline-block;max-width:100%"
+                />
+              </div>
+              <h1
+                style="font-weight:bold;margin:0;font-size:32px;padding:16px 24px 16px 24px"
+              >
+                Prijatie platby na {{ .EventName }}
+              </h1>
+              <div style="font-weight:normal;padding:20px 24px 0px 24px">
+                Dobrý deň,
+              </div>
+              <div style="font-weight:normal;padding:0px 24px 16px 24px">
+                úspešne sme zaregistrovali platbu vo výške {{ .Payed }} EUR za
+                vaše dieťa {{ .Name }} {{ .Surname }} na {{ .EventName }}
+              </div>
+              <div style="font-weight:normal;padding:16px 24px 16px 24px">
+                Ďakujeme
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

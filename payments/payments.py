@@ -43,7 +43,7 @@ for requisition_id in requisitions:
             p = re.compile("^\/VS0{0,8}(?P<vs>\d{2})/SS0{0,4}(?P<ss>100\d{3})/KS")
             ref = transaction["transactionId"]
         elif bank == "FIO_FIOZSKBA":
-            p = re.compile("^\?VS0{0,8}(?P<vs>\d{2})SS0{0,4}(?P<ss>100\d{3})KS")
+            p = re.compile("^\??VS0{0,8}(?P<vs>\d{2})SS0{0,4}(?P<ss>100\d{3})KS")
             ref = transaction["entryReference"]
         else:
             print("Unknown bank")
