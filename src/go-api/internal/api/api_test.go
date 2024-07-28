@@ -6,11 +6,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/labstack/gommon/random"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"time"
 
 	"github.com/MarekVigas/Postar-Jano/internal/auth"
@@ -35,7 +34,6 @@ const (
 	loggingEnabled = true
 	jwtSecret      = "top-secret"
 	promoSecret    = "secret"
-	testingDB      = "testing"
 )
 
 type CommonSuite struct {
@@ -43,10 +41,12 @@ type CommonSuite struct {
 	logger *zap.Logger
 
 	api          *api.API
+	rootDB       *sql.DB
 	db           *sql.DB
 	dbx          *sqlx.DB
 	mailer       *SenderMock
 	promoManager repository.PromoManager
+	dbName       string
 }
 
 type SenderMock struct {
@@ -78,34 +78,34 @@ func (s *CommonSuite) SetupSuite() {
 	var dbConfig config.DB
 	s.Require().NoError(envconfig.Process("", &dbConfig))
 
-	rootDB, err := dbConfig.Connect()
+	s.rootDB, err = dbConfig.Connect()
 	s.Require().NoError(err)
+
+	s.dbName = fmt.Sprintf("testing" + random.String(10, random.Lowercase))
 
 	// Create db schema.
-	_, err = rootDB.Exec(fmt.Sprintf(`DROP DATABASE IF EXISTS %s;`, testingDB))
+	_, err = s.rootDB.Exec(fmt.Sprintf(`DROP DATABASE IF EXISTS %s;`, s.dbName))
 	s.Require().NoError(err)
-	_, err = rootDB.Exec(fmt.Sprintf(`CREATE DATABASE %s;`, testingDB))
-	s.Require().NoError(err)
-	schema, err := os.Open("../../../../db/init.sql")
-	s.Require().NoError(err)
-	dbData, err := ioutil.ReadAll(schema)
+	_, err = s.rootDB.Exec(fmt.Sprintf(`CREATE DATABASE %s;`, s.dbName))
 	s.Require().NoError(err)
 
-	dbConfig.Database = testingDB
+	dbConfig.Database = s.dbName
+
+	err = repository.RunMigrations(s.logger, &dbConfig, s.dbName, "file://../../migrations")
+	s.Require().NoError(err)
+
 	s.db, err = dbConfig.Connect()
 	s.Require().NoError(err)
-
 	s.dbx = sqlx.NewDb(s.db, "postgres")
 
-	_, err = s.db.Exec(string(dbData))
-	s.Require().NoError(err)
-
 	s.promoManager = promo.NewJWTGenerator(s.logger, []byte(promoSecret), nil, nil)
+
 }
 
 func (s *CommonSuite) TearDownSuite() {
-	s.db.Exec("DROP DATABASE " + testingDB)
 	_ = s.db.Close()
+	_, _ = s.rootDB.Exec("DROP DATABASE " + s.dbName)
+	_ = s.rootDB.Close()
 	_ = s.logger.Sync()
 }
 
