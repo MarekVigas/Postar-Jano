@@ -4,7 +4,7 @@ Environment variables
 ```
 cat api.env
 
-POSTGRES_PASSWORD=postgres
+POSTGRES_PASSWORD=password
 POSTGRES_USER=postgres
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432

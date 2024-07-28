@@ -1,0 +1,19 @@
+services:
+  api:
+    build:
+      context: ../src/go-api
+      target: devImage
+    env_file:
+      - api.env
+    volumes:
+      - ../src/go-api:/src
+      - ../templates:/templates
+    ports:
+      - "127.0.0.1:48080:5000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    env_file:
+      - db.env
