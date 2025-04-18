@@ -2,6 +2,9 @@ FROM node:14-alpine AS build
 
 WORKDIR /app
 
+ARG REACT_APP_API_HOST
+ENV REACT_APP_API_HOST=$REACT_APP_API_HOST
+
 # add `/app/node_modules/.bin` to $PATH
 ENV PATH /app/node_modules/.bin:$PATH
 

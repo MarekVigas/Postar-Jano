@@ -7,9 +7,16 @@ The BE sources are mounted to the container i.e.: backend-api executable
 can be rebuilt by running `make rebuild-api` and started by `make run-api`. The API
 is served on port 5000 by default and forwarded to host on port 48080.
 
+To create an admin user run
+
+```bash
+docker exec -i -t dev-api-1 /src/registrations_api add-user --username admin@sbb.sk --password Pass123
+```
+
 ## Database
 
 Database is running on default port 5432
+
 
 ### Backup & Restore
 ```bash
