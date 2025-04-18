@@ -2,6 +2,7 @@ package api_test
 
 import (
 	"github.com/MarekVigas/Postar-Jano/internal/mailer/templates"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/mock"
 	"net/http"
 	"testing"
@@ -9,7 +10,6 @@ import (
 	"github.com/MarekVigas/Postar-Jano/internal/auth"
 	"github.com/MarekVigas/Postar-Jano/internal/model"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/random"
@@ -74,7 +74,7 @@ func (s *AuthSuite) TestSignIn_OK() {
 		})
 		s.NoError(err)
 		s.NotNil(token)
-		s.Equal(claims.Id, user.Email)
+		s.Equal(claims.Subject, user.Email)
 	})
 }
 

@@ -81,7 +81,7 @@ func (s *CommonSuite) SetupSuite() {
 	s.rootDB, err = dbConfig.Connect()
 	s.Require().NoError(err)
 
-	s.dbName = fmt.Sprintf("testing" + random.String(10, random.Lowercase))
+	s.dbName = fmt.Sprintf("testing%s", random.String(10, random.Lowercase))
 
 	// Create db schema.
 	_, err = s.rootDB.Exec(fmt.Sprintf(`DROP DATABASE IF EXISTS %s;`, s.dbName))

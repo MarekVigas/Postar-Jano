@@ -1,19 +1,30 @@
 services:
-  api:
+  db:
+    image: postgres:16
+    env_file:
+      - db.env
+
+  migrations:
     build:
       context: ../src/go-api
       target: devImage
+    image: api-image
+    restart: on-failure
+    command: "/src/registrations_api migrate"
+    env_file:
+      - api.env
+    depends_on:
+      - db
+
+  api:
+    image: api-image
     env_file:
       - api.env
     volumes:
       - ../src/go-api:/src
       - ../templates:/templates
+    command: "/src/registrations_api"
     ports:
       - "127.0.0.1:48080:5000"
     depends_on:
-      - db
-
-  db:
-    image: postgres:16
-    env_file:
-      - db.env
+      - migrations

@@ -1,4 +1,4 @@
-FROM golang:1.22.0 AS devImage
+FROM golang:1.24.2 AS devImage
 
 ADD https://github.com/chrisaxiom/docker-health-check/blob/master/docker-health-check?raw=true /docker-health-check
 RUN chmod a+x /docker-health-check

@@ -1,8 +1,16 @@
 version: "3.8"
 
 services:
+  migrations:
+    image: marekvigas/sbb-leto-api:master
+    command: "/app/bin/registrations_api migrate"
+    env_file: api.env
+    networks:
+      - backend
+    depends_on:
+      - db
   db:
-    image: marekvigas/sbb-leto-db:master
+    image: postgres:16
     networks:
       - backend
     env_file: db.env

@@ -29,6 +29,7 @@ func RunMigrations(logger *zap.Logger, cfg *config.DB, databaseName string, migr
 		logger.Error("Failed to init migration", zap.Error(err))
 		return errors.WithStack(err)
 	}
+	defer m.Close()
 
 	if err := m.Up(); err != nil {
 		if errors.Is(err, migrate.ErrNoChange) {
@@ -39,6 +40,5 @@ func RunMigrations(logger *zap.Logger, cfg *config.DB, databaseName string, migr
 		return errors.WithStack(err)
 	}
 	logger.Info("Migrations applied successfully.")
-	m.Close()
 	return nil
 }

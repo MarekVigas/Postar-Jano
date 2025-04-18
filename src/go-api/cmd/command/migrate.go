@@ -38,12 +38,12 @@ func runMigrations() error {
 		// End the process
 		defer t.Kill(nil)
 
-		c, err := config.LoadAdminSetting()
+		c, err := config.LoadDBSetting()
 		if err != nil {
 			return errors.Wrap(err, "failed to load config")
 		}
 
-		if err := repository.RunMigrations(logger, &c.DB, c.DB.Database, "file://migrations"); err != nil {
+		if err := repository.RunMigrations(logger, c, c.Database, "file://migrations"); err != nil {
 			return err
 		}
 
