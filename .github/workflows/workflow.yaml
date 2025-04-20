@@ -32,7 +32,7 @@ jobs:
         with:
           context: "{{defaultContext}}:src/go-api"
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/api:${{ github.ref_name }}
+          tags: ghcr.io/${{ github.repository }}/api:${{ github.ref_name }}
 
   build-fe:
     if: contains( github.ref, 'master')
@@ -54,7 +54,7 @@ jobs:
         with:
           context: "{{defaultContext}}:fe"
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/form:${{ github.ref_name }}
+          tags: ghcr.io/${{ github.repository }}/form:${{ github.ref_name }}
           build-args: |
             VITE_API_HOST=https://leto-api.salezko.sk
             VITE_RESULT_REDIRECT=https://sbb.sk/leto
@@ -79,7 +79,7 @@ jobs:
         with:
           context: "{{defaultContext}}:admin"
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/admin:${{ github.ref_name }}
+          tags: ghcr.io/${{ github.repository }}/admin:${{ github.ref_name }}
           build-args: |
             REACT_APP_API_HOST=https://leto-api.salezko.sk
 
@@ -103,7 +103,7 @@ jobs:
         with:
           context: "{{defaultContext}}:payments"
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/payments:${{ github.ref_name }}
+          tags: ghcr.io/${{ github.repository }}/payments:${{ github.ref_name }}
 
   be-unit-test:
     # The type of runner that the job will run on
