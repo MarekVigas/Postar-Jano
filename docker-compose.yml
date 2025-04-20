@@ -62,7 +62,7 @@ services:
 
 secrets:
   cloudflare_token:
-    file: ./cloudflared_token
+    file: ./cloudflared_token.env
 
 networks:
   backend:
