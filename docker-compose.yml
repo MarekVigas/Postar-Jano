@@ -7,6 +7,7 @@ services:
       - backend
     depends_on:
       - db
+  
   db:
     image: postgres:16
     networks:
@@ -14,6 +15,7 @@ services:
     env_file: db.env
     volumes:
       - /root/salezko/db:/var/lib/postgresql/data
+  
   api:
     image: ghcr.io/marekvigas/postar-jano/api:master
     networks:
@@ -31,12 +33,19 @@ services:
 
   form:
     image: ghcr.io/marekvigas/postar-jano/form:master
+    networks:
+      - cloudflared
 
   admin:
     image: ghcr.io/marekvigas/postar-jano/admin:master
+    networks:
+      - cloudflared
 
   pgadmin:
     image: dpage/pgadmin4
+    networks:
+      - cloudflared
+      - backend
     volumes:
       - /root/salezko/pgadmin:/var/lib/pgadmin
 
