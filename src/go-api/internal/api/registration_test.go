@@ -3,6 +3,7 @@ package api_test
 import (
 	"fmt"
 	"github.com/MarekVigas/Postar-Jano/internal/model"
+	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -15,7 +16,6 @@ import (
 	"github.com/MarekVigas/Postar-Jano/internal/auth"
 	"github.com/MarekVigas/Postar-Jano/internal/mailer/templates"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -333,7 +333,11 @@ func (s *RegistrationSuite) TestDelete_Unauthorized() {
 
 func (s *RegistrationSuite) TestDelete_NotFound() {
 	req, rec := s.NewRequest(http.MethodDelete, "/api/registrations/42", nil)
-	s.AuthorizeRequest(req, &auth.Claims{StandardClaims: jwt.StandardClaims{Id: "admin@sbb.sk"}})
+	s.AuthorizeRequest(req, &auth.Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject: "admin@sbb.sk",
+		},
+	})
 	s.AssertServerResponseObject(req, rec, http.StatusNotFound, nil)
 }
 
@@ -342,7 +346,11 @@ func (s *RegistrationSuite) TestDelete_OK() {
 
 	u := fmt.Sprintf("/api/registrations/%d", reg.ID)
 	req, rec := s.NewRequest(http.MethodDelete, u, nil)
-	s.AuthorizeRequest(req, &auth.Claims{StandardClaims: jwt.StandardClaims{Id: "admin@sbb.sk"}})
+	s.AuthorizeRequest(req, &auth.Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject: "admin@sbb.sk",
+		},
+	})
 	s.AssertServerResponseObject(req, rec, http.StatusOK, nil)
 }
 

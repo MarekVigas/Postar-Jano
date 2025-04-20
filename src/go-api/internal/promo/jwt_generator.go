@@ -2,11 +2,11 @@ package promo
 
 import (
 	"context"
+	"github.com/golang-jwt/jwt/v5"
 	"time"
 
 	"github.com/MarekVigas/Postar-Jano/internal/model"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -38,17 +38,17 @@ func NewJWTGenerator(logger *zap.Logger, secret []byte, activationDate *time.Tim
 
 func (g *JWTGenerator) GenerateToken(ctx context.Context, tx sqlx.QueryerContext, email string, registrationCount int) (token string, err error) {
 	key := uuid.New().String()
-	claims := jwt.StandardClaims{
-		Audience: audience,
-		Id:       key,
-		IssuedAt: time.Now().UTC().Unix(),
+	claims := jwt.RegisteredClaims{
+		Audience: jwt.ClaimStrings{audience},
+		ID:       key,
+		IssuedAt: jwt.NewNumericDate(time.Now().UTC()),
 		Issuer:   issuer,
 	}
 	if g.activationDate != nil {
-		claims.NotBefore = g.activationDate.UTC().Unix()
+		claims.NotBefore = jwt.NewNumericDate(g.activationDate.UTC())
 	}
 	if g.expirationDate != nil {
-		claims.ExpiresAt = g.expirationDate.UTC().Unix()
+		claims.ExpiresAt = jwt.NewNumericDate(g.expirationDate.UTC())
 	}
 	token, err = jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(g.promoSecret)
 	if err != nil {
@@ -66,22 +66,18 @@ func (g *JWTGenerator) GenerateToken(ctx context.Context, tx sqlx.QueryerContext
 }
 
 func (g *JWTGenerator) ValidateToken(ctx context.Context, tx sqlx.QueryerContext, token string) (code *model.PromoCode, err error) {
-	var standardClaims jwt.StandardClaims
+	var standardClaims jwt.RegisteredClaims
 	decodedToken, err := jwt.ParseWithClaims(token, &standardClaims, func(token *jwt.Token) (interface{}, error) {
 		return g.promoSecret, nil
 	})
 	if err != nil {
-		var validationErr *jwt.ValidationError
-		if errors.As(err, &validationErr) {
-			return nil, errors.WithStack(ErrInvalid)
-		}
-		return nil, errors.WithStack(err)
+		return nil, errors.WithStack(ErrInvalid)
 	}
 	if !decodedToken.Valid {
 		return nil, errors.WithStack(ErrInvalid)
 	}
 
-	promoCode, err := model.FindPromoCodeByKey(ctx, tx, standardClaims.Id)
+	promoCode, err := model.FindPromoCodeByKey(ctx, tx, standardClaims.ID)
 	if err != nil {
 		return nil, err
 	}

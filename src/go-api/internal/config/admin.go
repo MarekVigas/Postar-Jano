@@ -19,3 +19,11 @@ func LoadAdminSetting() (*AdminSettings, error) {
 	}
 	return &c, nil
 }
+
+func LoadDBSetting() (*DB, error) {
+	var dbConfig DB
+	if err := envconfig.Process("", &dbConfig); err != nil {
+		return nil, errors.Wrap(err, "failed to load db settings")
+	}
+	return &dbConfig, nil
+}

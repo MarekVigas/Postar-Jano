@@ -20,8 +20,8 @@ import (
 	"github.com/MarekVigas/Postar-Jano/internal/repository"
 	"github.com/MarekVigas/Postar-Jano/internal/resources"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -527,14 +527,13 @@ func (api *API) notifyRegistration(ctx context.Context, tx *sqlx.Tx, reg *model.
 func (api *API) generateToken(owner *model.Owner) (string, error) {
 	now := time.Now()
 	tok := jwt.NewWithClaims(jwt.SigningMethodHS256, &auth.Claims{
-		StandardClaims: jwt.StandardClaims{
-			Audience:  "",
-			ExpiresAt: now.Add(tokenLifetime).Unix(),
-			Id:        owner.Email,
-			IssuedAt:  now.Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(now.Add(tokenLifetime)),
+			//Id:        uuid.,
+			IssuedAt:  jwt.NewNumericDate(now),
 			Issuer:    "sbb.sk",
-			NotBefore: now.Unix(),
-			Subject:   "",
+			NotBefore: jwt.NewNumericDate(now),
+			Subject:   owner.Email,
 		},
 	})
 

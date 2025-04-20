@@ -1,7 +1,9 @@
 package auth
 
-import "github.com/dgrijalva/jwt-go"
+import (
+	"github.com/golang-jwt/jwt/v5"
+)
 
 type Claims struct {
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
