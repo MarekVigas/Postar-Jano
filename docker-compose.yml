@@ -1,8 +1,6 @@
-version: "3.8"
-
 services:
   migrations:
-    image: marekvigas/sbb-leto-api:master
+    image: ghcr.io/marekvigas/postar-jano/api:master
     command: "/app/bin/registrations_api migrate"
     env_file: api.env
     networks:
@@ -17,50 +15,46 @@ services:
     volumes:
       - /root/salezko/db:/var/lib/postgresql/data
   api:
-    image: marekvigas/sbb-leto-api:master
-    ports:
-      - "5000:5000"
+    image: ghcr.io/marekvigas/postar-jano/api:master
     networks:
       - backend
+      - cloudflared
     volumes:
       - /root/salezko/promo.html:/tmp/promo.html
       - /root/salezko/confirmation.html:/tmp/confirmation.html
       - /root/salezko/payment.html:/tmp/payment.html
     env_file: api.env
-    deploy:
-      # replicas: 2
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 500M
+    depends_on:
+      - db
+      - migrations
+    restart: unless-stopped
+
   form:
-    image: marekvigas/sbb-leto-form:sbb
-    ports:
-      - "4000:80"
+    image: ghcr.io/marekvigas/postar-jano/form:master
 
   admin:
-    image: marekvigas/sbb-leto-admin:sbb
-    ports:
-      - "3000:80"
+    image: ghcr.io/marekvigas/postar-jano/admin:master
 
   pgadmin:
     image: dpage/pgadmin4
     volumes:
       - /root/salezko/pgadmin:/var/lib/pgadmin
-    env_file: pgadmin.env
-    ports:
-     - "5050:80"
-    networks:
-      - backend
 
-  pgbackups:
-    image: prodrigestivill/postgres-backup-local:13-alpine
-    user: postgres:postgres
-    volumes:
-      - /root/salezko/backups:/backups
-    env_file: pgbackups.env
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN_FILE: /run/secrets/cloudflare_token
     networks:
-      - backend
+      - cloudflared
+    restart: unless-stopped
+    secrets:
+      - cloudflare_token
+
+secrets:
+  cloudflare_token:
+    file: ./cloudflared_token
 
 networks:
   backend:
+  cloudflared:
