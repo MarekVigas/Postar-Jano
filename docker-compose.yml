@@ -1,7 +1,7 @@
 services:
   migrations:
     image: ghcr.io/marekvigas/postar-jano/api:master
-    command: "/app/bin/registrations_api migrate"
+    command: "/app/bin/registrations_api migrate --migrationsPath /app/migrations"
     env_file: api.env
     networks:
       - backend

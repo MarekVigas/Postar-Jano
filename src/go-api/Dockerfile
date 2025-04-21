@@ -18,5 +18,6 @@ WORKDIR /app
 COPY --from=devImage /docker-health-check /docker-health-check
 COPY --from=devImage /etc/ssl/certs /etc/ssl/certs
 COPY --from=devImage /src/registrations_api /app/bin/registrations_api
+COPY --from=devImage /src/migrations /app/migrations
 HEALTHCHECK --interval=10s --timeout=5s --retries=3 CMD ["/docker-health-check", "-url=http://127.0.0.1:5000/api/status"]
 CMD ["/app/bin/registrations_api"]

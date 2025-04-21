@@ -18,7 +18,10 @@ var migrateCmd = &cobra.Command{
 	Run:   migrations,
 }
 
+var migrationsPath string
+
 func init() {
+	migrateCmd.PersistentFlags().StringVar(&migrationsPath, "migrationsPath", "migrations", "list of migrations file")
 	rootCmd.AddCommand(migrateCmd)
 }
 
@@ -43,7 +46,7 @@ func runMigrations() error {
 			return errors.Wrap(err, "failed to load config")
 		}
 
-		if err := repository.RunMigrations(logger, c, c.Database, "file://migrations"); err != nil {
+		if err := repository.RunMigrations(logger, c, c.Database, "file://"+migrationsPath); err != nil {
 			return err
 		}
 
