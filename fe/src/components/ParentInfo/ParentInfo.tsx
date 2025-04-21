@@ -1,19 +1,14 @@
 import React from 'react';
-import { Registration, ActionType } from '../../utils/types';
-import { IonGrid, IonRow, IonCol, IonItem, IonLabel, IonInput } from '@ionic/react';
+import { Registration } from '../../utils/types';
+import { IonGrid, IonRow, IonCol, IonItem, IonInput } from '@ionic/react';
 import 'react-phone-number-input/style.css'
 import PhoneInput from 'react-phone-number-input'
 import "./ParentInfo.scss"
-import { Control, Controller, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import { Controller, useFormContext } from 'react-hook-form';
 
-interface ParentInfoProps {
-  control: Control<Registration>
-  register: UseFormRegister<Registration>
-  watch: UseFormWatch<Registration>
-  setValue: UseFormSetValue<Registration>
-}
+const ParentInfo: React.FC = () => {
+  const { register, setValue, watch, control } = useFormContext<Registration>();
 
-const ParentInfo: React.FC<ParentInfoProps> = ({ register, watch, control, setValue }) => {
   return (
     <IonGrid>
       <IonRow>
@@ -67,7 +62,7 @@ const ParentInfo: React.FC<ParentInfoProps> = ({ register, watch, control, setVa
                     maxWidth: "25vw",
                   }}
                   useNationalFormatForDefaultCountryValue={true}
-                  onChange={(value: string) => setValue('parent.phone', value)}
+                  onChange={(value) => setValue('parent.phone', value || '')}
                 />
               )}
               name="parent.phone"

@@ -1,18 +1,14 @@
 import React from 'react';
-import { Registration, Gender, ActionType, IEvent } from '../../utils/types';
-import { IonGrid, IonRow, IonCol, IonItem, IonLabel, IonInput, IonRadioGroup, IonRadio, IonIcon, IonSelect, IonSelectOption } from '@ionic/react';
-import { Control, Controller, UseFormGetValues, UseFormRegister, UseFormSetValue } from 'react-hook-form';
+import { Registration, Gender } from '../../utils/types';
+import { IonGrid, IonRow, IonCol, IonItem, IonInput } from '@ionic/react';
+import { useFormContext } from 'react-hook-form';
 import { RadioGroup } from '../from/radio';
 import { Select } from '../from/select';
 
-interface ChildInfoProps {
-  register: UseFormRegister<Registration>,
-  setValue: UseFormSetValue<Registration>,
-  getValues: UseFormGetValues<Registration>
-  control: Control<Registration>
-}
+const ChildInfo: React.FC = () => {
 
-const ChildInfo: React.FC<ChildInfoProps> = ({ register, control, setValue, getValues }) => {
+  const { register, setValue, getValues, control } = useFormContext<Registration>();
+
   return (
     <IonGrid>
       <IonRow>
@@ -60,9 +56,9 @@ const ChildInfo: React.FC<ChildInfoProps> = ({ register, control, setValue, getV
         <IonCol>
           <h4>Dátum narodenia</h4>
           <IonItem>
-            <IonInput {...register('child.dateOfBirthDay', { required: true })} label="Deň" type='number' min={1} max={31} labelPlacement="stacked" placeholder="23" size={4}></IonInput>
-            <IonInput {...register('child.dateOfBirthMonth', { required: true })} label="Mesiac" type='number' min={1} max={12} labelPlacement="stacked" placeholder="5" size={4}></IonInput>
-            <IonInput {...register('child.dateOfBirthYear', { required: true })} label="Rok" type='number' labelPlacement="stacked" placeholder="2022" size={8}></IonInput>
+            <IonInput {...register('child.dateOfBirthDay', { required: true })} label="Deň" type='number' min={1} max={31} labelPlacement="stacked" placeholder="23"></IonInput>
+            <IonInput {...register('child.dateOfBirthMonth', { required: true })} label="Mesiac" type='number' min={1} max={12} labelPlacement="stacked" placeholder="5"></IonInput>
+            <IonInput {...register('child.dateOfBirthYear', { required: true })} label="Rok" type='number' labelPlacement="stacked" placeholder="2022"></IonInput>
           </IonItem>
         </IonCol>
       </IonRow>

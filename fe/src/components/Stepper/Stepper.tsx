@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import "./Stepper.scss"
-import { Registration, IEvent, Stat, RegistrationRespone, PromoResponse } from '../../utils/types';
-import { useForm } from "react-hook-form";
+import { Registration, IEvent, Stat, RegistrationRespone, PromoResponse, Gender } from '../../utils/types';
+import { FormProvider, useForm } from "react-hook-form";
 import { IonButton, IonCol, IonGrid, IonIcon, IonItem, IonProgressBar, IonRow, useIonRouter, useIonToast } from '@ionic/react';
 import { arrowBackOutline, arrowForwardOutline } from 'ionicons/icons';
 import IntroInfo from '../IntroInfo/IntroInfo';
@@ -24,6 +24,7 @@ const schema = yup.object().shape({
     name: yup.string().min(3).required().label('Meno dieťaťa'),
     surname: yup.string().min(3).required().label('Priezvisko dieťaťa'),
     city: yup.string().min(3).required().label('Mesto'),
+    gender: yup.string().required().label('Pohlavie'),
     finishedSchoolYear: yup.string().required().label('Ukončený školský rok'),
     attendedPreviousEvents: yup.boolean().required().label('Zúčastnil sa minuloročných akcií'),
     dateOfBirthDay: yup.number().min(1).max(31).required().label('Deň narodenia'),
@@ -31,10 +32,12 @@ const schema = yup.object().shape({
     dateOfBirthYear: yup.number().min(1990).max(2018).required().label('Rok narodenia')
   }),
   medicine: yup.object().shape({
-    takes: yup.boolean().required().label('Lieky')
+    takes: yup.boolean().required().label('Lieky'),
+    drugs: yup.string().optional()
   }),
   health: yup.object().shape({
-    hasProblmes: yup.boolean().required().label('Zdravotné ťažkosti')
+    hasProblmes: yup.boolean().required().label('Zdravotné ťažkosti'),
+    problems: yup.string().optional()
   }),
   parent: yup.object().shape({
     name: yup.string().min(3).required().label('Meno zákonneho zástupcu'),
@@ -42,7 +45,12 @@ const schema = yup.object().shape({
     email: yup.string().email().required().label('Email'),
     phone: yup.string().required().label('Telefónne číslo')
   }),
-  days: yup.array().of(yup.number()).min(1).label('Dni akcie')
+  days: yup.array().of(yup.number().required()).min(1).required().label('Dni akcie'),
+  promo_code: yup.string().nullable().label('Promo kód'),
+  notes: yup.string().nullable().label('Poznámka'),
+  memberShip: yup.object().shape({
+    attendedActivities: yup.string().required().label('Zúčastnené aktivity')
+  }).required().label('Členstvo')
 });
 
 interface StepperProps {
@@ -58,38 +66,6 @@ enum ActivePage {
   ParentInfo,
   OtherInfo,
   Results
-}
-
-const initialValues = {
-  child: {
-    name: "",
-    surname: "",
-    gender: null,
-    city: "",
-    dateOfBirth: null,
-    finishedSchoolYear: null,
-    attendedPreviousEvents: null
-  },
-  days: [],
-  medicine: {
-    takes: null,
-    drugs: ""
-  },
-  health: {
-    hasProblmes: null,
-    problems: ""
-  },
-  parent: {
-    name: "",
-    surname: "",
-    email: "",
-    phone: "",
-  },
-  memberShip: {
-    attendedActivities: ""
-  },
-  notes: "",
-  promo_code: null
 }
 
 const eventFull = (stats: Stat[]) => {
@@ -109,11 +85,12 @@ const eventFull = (stats: Stat[]) => {
 
 
 const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
-  const { control, watch, setValue, register, handleSubmit, getValues, formState: { errors, isValid }, trigger } = useForm<Registration>({
-    defaultValues: initialValues,
+  const methods = useForm({
     resolver: yupResolver(schema),
     mode: 'onBlur'
   })
+
+  const { setValue, handleSubmit, formState: { errors, isValid } } = methods;
 
   const { child: childErrors, medicine: medicineErrors, health: healthErrors, parent: parentErrors, days: daysErrors } = errors
 
@@ -201,200 +178,219 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
   }, [page, pageCount, event])
 
   return (
-    <form onSubmit={handleSubmit((registration: Registration) => {
-      setPage(page + 1)
+    <FormProvider {...methods}>
+      <form onSubmit={handleSubmit((data) => {
+        const { child, days, parent, notes, medicine, health, memberShip } = data
+        
+        const padded_month = `${child.dateOfBirthMonth}`.padStart(2, '0')
+        const padded_day = `${child.dateOfBirthDay}`.padStart(2, '0')
+        
+        const registration: Registration = {
+          child: {
+            ...child,
+            gender: child.gender == Gender.Male ? Gender.Male : Gender.Female,
+            dateOfBirth: `${child.dateOfBirthYear}-${padded_month}-${padded_day}T05:00:00.00Z`
+          },
+          days: event.days.length === 1 ? [event.days[0].id] : days,
+          parent,
+          promo_code: promo ?? null,
+          notes: notes ?? "",
+          medicine: {
+            takes: medicine.takes,
+            drugs: medicine.drugs ?? "",
+          },
+          health: {
+            hasProblmes: health.hasProblmes,
+            problems: health.problems ?? "",
+          },
+          memberShip: {
+            attendedActivities: memberShip.attendedActivities
+          }
+        }
 
-      if (event.days.length === 1) {
-        registration.days = [event.days[0].id]
-      }
+        setPage(page + 1)
 
-      const { child } = registration
+        if (promo) {
+          registration.promo_code = promo
+        }
 
-      const padded_month = `${child.dateOfBirthMonth}`.padStart(2, '0')
-      const padded_day = `${child.dateOfBirthDay}`.padStart(2, '0')
+        const dataString = JSON.stringify(registration, null, 2)
+        console.log(dataString)
 
-      registration.child.dateOfBirth = `${child.dateOfBirthYear}-${padded_month}-${padded_day}T05:00:00.00Z`
-
-      if (promo) {
-        registration.promo_code = promo
-      }
-
-      const dataString = JSON.stringify(registration, null, 2)
-      console.log(dataString)
-
-      axios.post<RegistrationRespone>(`/registrations/${event.id}`, registration)
-        .then((response) => response.data)
-        .then((res: RegistrationRespone) => {
-          if (res.success) {
-            present({
-              duration: 2000,
-              message: "Prihláška bola úspešne spracovaná",
-              color: "success",
-              position: "top"
-            })
-            setCanGoBack(false)
-            router.push('/events')
-          } else if (res.registeredIDs) {
-            if (res.registeredIDs.length !== registration.days.length) {
-              const notRegistred = registration.days.filter(d => !res.registeredIDs?.includes(d))
-              let msg = 'Nepodarilo sa prihlásiť na tieto termíny: '
-              for (const dayId of notRegistred) {
-                const day = event.days.filter(d => d.id === dayId)[0];
-                msg += `${day.description} `
-              }
-              setCanGoBack(true)
+        axios.post<RegistrationRespone>(`/registrations/${event.id}`, registration)
+          .then((response) => response.data)
+          .then((res: RegistrationRespone) => {
+            if (res.success) {
               present({
                 duration: 2000,
-                message: msg,
+                message: "Prihláška bola úspešne spracovaná",
+                color: "success",
+                position: "top"
+              })
+              setCanGoBack(false)
+              router.push('/events')
+            } else if (res.registeredIDs) {
+              if (res.registeredIDs.length !== registration.days.length) {
+                const notRegistred = registration.days.filter(d => !res.registeredIDs?.includes(d))
+                let msg = 'Nepodarilo sa prihlásiť na tieto termíny: '
+                for (const dayId of notRegistred) {
+                  const day = event.days.filter(d => d.id === dayId)[0];
+                  msg += `${day.description} `
+                }
+                setCanGoBack(true)
+                present({
+                  duration: 2000,
+                  message: msg,
+                  color: "danger",
+                  position: "top"
+                })
+              }
+            } else {
+              present({
+                duration: 2000,
+                message: "Došlo k neznámej chybe",
                 color: "danger",
                 position: "top"
               })
+              router.push('/events')
             }
-          } else {
+          })
+          .catch(async err => {
             present({
               duration: 2000,
               message: "Došlo k neznámej chybe",
               color: "danger",
               position: "top"
             })
-            router.push('/events')
-          }
-        })
-        .catch(async err => {
-          present({
-            duration: 2000,
-            message: "Došlo k neznámej chybe",
-            color: "danger",
-            position: "top"
+            setCanGoBack(true)
+            console.log(err)
           })
-          setCanGoBack(true)
-          console.log(err)
-        })
-    })} >
-      <IonGrid>
-        <IonRow>
-          <IonCol size="2"></IonCol>
-          <IonCol>
-            <IonProgressBar value={page / (pageCount - 1)}></IonProgressBar>
-          </IonCol>
-          <IonCol size="2"></IonCol>
-        </IonRow>
-        {/* <IonRow><pre>{JSON.stringify(watch(), null, 2)}</pre></IonRow> */}
-        {
-          event && stats &&
+      })} >
+        <IonGrid>
           <IonRow>
             <IonCol size="2"></IonCol>
             <IonCol>
-              {
-                activePage === ActivePage.Intro && <IntroInfo event={event} stats={stats} />
-              }
-              {
-                activePage === ActivePage.ChildInfo && <ChildInfo register={register} control={control} setValue={setValue} getValues={getValues} />
-              }
-              {
-                activePage === ActivePage.MedicineHealth && <MedicineHealth register={register} setValue={setValue} watch={watch} getValues={getValues} />
-              }
-              {
-                activePage === ActivePage.DaySelector && <DaySelector register={register} watch={watch} setValue={setValue} event={event} stats={stats} />
-              }
-              {
-                activePage === ActivePage.ParentInfo && <ParentInfo register={register} control={control} watch={watch} setValue={setValue} />
-              }
-              {
-                activePage === ActivePage.OtherInfo && <OtherInfo register={register} trigger={trigger} />
-              }
+              <IonProgressBar value={page / (pageCount - 1)}></IonProgressBar>
             </IonCol>
             <IonCol size="2"></IonCol>
           </IonRow>
-        }
-        {
-          !isValid &&
+          {/* <IonRow><pre>{JSON.stringify(watch(), null, 2)}</pre></IonRow> */}
+          {
+            event && stats &&
+            <IonRow>
+              <IonCol size="2"></IonCol>
+              <IonCol>
+                {
+                  activePage === ActivePage.Intro && <IntroInfo event={event} stats={stats} />
+                }
+                {
+                  activePage === ActivePage.ChildInfo && <ChildInfo/>
+                }
+                {
+                  activePage === ActivePage.MedicineHealth && <MedicineHealth/>
+                }
+                {
+                  activePage === ActivePage.DaySelector && <DaySelector event={event} stats={stats} />
+                }
+                {
+                  activePage === ActivePage.ParentInfo && <ParentInfo />
+                }
+                {
+                  activePage === ActivePage.OtherInfo && <OtherInfo />
+                }
+              </IonCol>
+              <IonCol size="2"></IonCol>
+            </IonRow>
+          }
+          {
+            !isValid &&
+            <IonRow>
+              <IonCol></IonCol>
+              <IonCol>
+                {
+                  activePage === ActivePage.ChildInfo && childErrorMessages.map((error) => (
+                    <IonItem color='danger'>
+                      {error}
+                    </IonItem>
+                  ))
+                }
+                {
+                  activePage === ActivePage.MedicineHealth && MedicineHealthErrorMessages.map((error) => (
+                    <IonItem color='danger'>
+                      {error}
+                    </IonItem>
+                  ))
+                }
+                {
+                  activePage === ActivePage.DaySelector && daysErrorMessages.map((error) => (
+                    <IonItem color='danger'>
+                      {error}
+                    </IonItem>
+                  ))
+                }
+                {
+                  activePage === ActivePage.ParentInfo && parentErrorMessages.map((error) => (
+                    <IonItem color='danger'>
+                      {error}
+                    </IonItem>
+                  ))
+                }
+                {
+                  activePage === ActivePage.OtherInfo && [...childErrorMessages, ...MedicineHealthErrorMessages, ...daysErrorMessages, ...parentErrorMessages].map((error) => (
+                    <IonItem color='danger'>
+                      {error}
+                    </IonItem>
+                  ))
+                }
+              </IonCol>
+              <IonCol></IonCol>
+            </IonRow>
+          }
           <IonRow>
             <IonCol></IonCol>
-            <IonCol>
-              {
-                activePage === ActivePage.ChildInfo && childErrorMessages.map((error) => (
-                  <IonItem color='danger'>
-                    {error}
-                  </IonItem>
-                ))
-              }
-              {
-                activePage === ActivePage.MedicineHealth && MedicineHealthErrorMessages.map((error) => (
-                  <IonItem color='danger'>
-                    {error}
-                  </IonItem>
-                ))
-              }
-              {
-                activePage === ActivePage.DaySelector && daysErrorMessages.map((error) => (
-                  <IonItem color='danger'>
-                    {error}
-                  </IonItem>
-                ))
-              }
-              {
-                activePage === ActivePage.ParentInfo && parentErrorMessages.map((error) => (
-                  <IonItem color='danger'>
-                    {error}
-                  </IonItem>
-                ))
-              }
-              {
-                activePage === ActivePage.OtherInfo && [...childErrorMessages, ...MedicineHealthErrorMessages, ...daysErrorMessages, ...parentErrorMessages].map((error) => (
-                  <IonItem color='danger'>
-                    {error}
-                  </IonItem>
-                ))
-              }
+            <IonCol size="3">
+              <div className="previous">
+                {
+                  page > 0 && canGoBack &&
+                  <IonButton expand="full" shape="round" onClick={() => setPage(page - 1)}>
+                    <IonIcon icon={arrowBackOutline} />
+                    Späť
+                  </IonButton>
+                }
+              </div>
+            </IonCol>
+            <IonCol size="3">
+              <div className="next">
+                {
+                  page < pageCount - 1 && !isFull && (event.active || (event.promo_registration && promoValidation?.status == "ok" && promoValidation.available_registrations > 0)) &&
+                  <IonButton expand="full" shape="round" onClick={async () => {
+                    if (page < pageCount) {
+                      setPage(page + 1)
+                    }
+                  }}>
+                    Ďalej
+                    <IonIcon icon={arrowForwardOutline} />
+                  </IonButton>
+                }
+                {
+                  activePage == ActivePage.OtherInfo &&
+                  <IonButton
+                    expand="full"
+                    shape="round"
+                    color="success"
+                    disabled={!isValid}
+                    type='submit'
+                  >
+                    Odoslať
+                  </IonButton>
+                }
+              </div>
             </IonCol>
             <IonCol></IonCol>
           </IonRow>
-        }
-        <IonRow>
-          <IonCol></IonCol>
-          <IonCol size="3">
-            <div className="previous">
-              {
-                page > 0 && canGoBack &&
-                <IonButton expand="full" shape="round" onClick={() => setPage(page - 1)}>
-                  <IonIcon icon={arrowBackOutline} />
-                  Späť
-                </IonButton>
-              }
-            </div>
-          </IonCol>
-          <IonCol size="3">
-            <div className="next">
-              {
-                page < pageCount - 1 && !isFull && (event.active || (event.promo_registration && promoValidation?.status == "ok" && promoValidation.available_registrations > 0)) &&
-                <IonButton expand="full" shape="round" onClick={async () => {
-                  if (page < pageCount) {
-                    setPage(page + 1)
-                  }
-                }}>
-                  Ďalej
-                  <IonIcon icon={arrowForwardOutline} />
-                </IonButton>
-              }
-              {
-                activePage == ActivePage.OtherInfo &&
-                <IonButton
-                  expand="full"
-                  shape="round"
-                  color="success"
-                  disabled={!isValid}
-                  type='submit'
-                >
-                  Odoslať
-                </IonButton>
-              }
-            </div>
-          </IonCol>
-          <IonCol></IonCol>
-        </IonRow>
-      </IonGrid>
-    </form>
+        </IonGrid>
+      </form>
+    </FormProvider>
   )
 };
 
