@@ -48,7 +48,7 @@ const IntroInfo: React.FC<IntroInfoProps> = (props) => {
             }
             <IonItem>
                     <IonCol slot="start" size="0.9" className="infIcon" >
-                        <IonIcon icon={calendarOutline} class="bigIcon" />
+                        <IonIcon icon={calendarOutline} />
                     </IonCol>
                     <IonCol size="4">
                         <h5>Dátum:</h5>
@@ -61,7 +61,7 @@ const IntroInfo: React.FC<IntroInfoProps> = (props) => {
             </IonItem>
             <IonItem>
                 <IonCol slot="start" size="0.9" className="infIcon" >
-                    <IonIcon icon={locateOutline} class="bigIcon" />
+                    <IonIcon icon={locateOutline} />
                 </IonCol>
                 <IonCol size="4">
                     <h5>Miesto:</h5>
@@ -76,7 +76,7 @@ const IntroInfo: React.FC<IntroInfoProps> = (props) => {
                 event.time && 
                 <IonItem>
                     <IonCol slot="start" size="0.9" className="infIcon" >
-                        <IonIcon icon={timeOutline} class="bigIcon" />
+                        <IonIcon icon={timeOutline} />
                     </IonCol>
                     <IonCol size="4">
                         <h5>Čas:</h5>
@@ -90,7 +90,7 @@ const IntroInfo: React.FC<IntroInfoProps> = (props) => {
             }
             <IonItem>
                 <IonCol slot="start" size="0.9" className="infIcon" >
-                    <IonIcon icon={personOutline} class="bigIcon" />
+                    <IonIcon icon={personOutline} />
                 </IonCol>
                 <IonCol size="4">
                     <h5>Vek:</h5>
@@ -103,7 +103,7 @@ const IntroInfo: React.FC<IntroInfoProps> = (props) => {
             </IonItem>
             <IonItem>
                 <IonCol slot="start" size="0.9" className="infIcon" >
-                    <IonIcon icon={logoEuro} class="bigIcon" />
+                    <IonIcon icon={logoEuro} />
                 </IonCol>
                 <IonCol size="4">
                     <h5>Cena:</h5>
@@ -118,7 +118,7 @@ const IntroInfo: React.FC<IntroInfoProps> = (props) => {
                 event.info && 
                 <IonItem>
                     <IonCol slot="start" size="0.9" className="infIcon" >
-                        <IonIcon icon={informationCircleOutline} class="bigIcon" />
+                        <IonIcon icon={informationCircleOutline} />
                     </IonCol>
                     <IonCol size="4">
                         <h5>Ďalšie informácie:</h5>

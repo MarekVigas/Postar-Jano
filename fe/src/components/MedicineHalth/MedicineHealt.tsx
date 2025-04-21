@@ -1,17 +1,12 @@
 import React from 'react';
-import { IonGrid, IonRow, IonCol, IonItem, IonLabel, IonInput, IonRadioGroup, IonRadio } from '@ionic/react';
-import { UseFormGetValues, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import { IonGrid, IonRow, IonCol, IonItem, IonInput } from '@ionic/react';
+import { useFormContext } from 'react-hook-form';
 import { Registration } from '../../utils/types';
 import { RadioGroup } from '../from/radio';
 
-interface MedicineHealthProps {
-  register: UseFormRegister<Registration>
-  setValue: UseFormSetValue<Registration>
-  getValues: UseFormGetValues<Registration>
-  watch: UseFormWatch<Registration>
-}
+const MedicineHealth: React.FC = () => {
 
-const MedicineHealth: React.FC<MedicineHealthProps> = ({ register, setValue, watch, getValues }) => {
+  const { register, setValue, getValues, watch } = useFormContext<Registration>();
 
   return (
     <IonGrid>

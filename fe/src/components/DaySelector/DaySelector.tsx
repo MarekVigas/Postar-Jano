@@ -2,17 +2,14 @@ import React, { useState } from 'react';
 import './DaySelector.scss';
 import { IEvent, Registration, Day, Stat } from '../../utils/types';
 import { IonGrid, IonRow, IonCol, IonItem, IonLabel, IonCheckbox, IonProgressBar } from '@ionic/react';
-import { UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import { useFormContext, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 
 interface ChildInfoProps {
     event: IEvent,
-    register: UseFormRegister<Registration>
-    watch: UseFormWatch<Registration>
     stats: Stat[],
-    setValue: UseFormSetValue<Registration>
 }
 
-const DaySelector: React.FC<ChildInfoProps> = ({ event, stats, setValue, watch }) => {
+const DaySelector: React.FC<ChildInfoProps> = ({ event, stats }) => {
     const capacitytoColor = (capacity: number): string => {
         let color = "primary";
 
@@ -25,6 +22,8 @@ const DaySelector: React.FC<ChildInfoProps> = ({ event, stats, setValue, watch }
         }
         return color
     }
+
+    const { setValue, watch } = useFormContext<Registration>()
 
     const selected = watch('days')
 
