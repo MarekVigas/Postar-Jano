@@ -29,7 +29,7 @@ const schema = yup.object().shape({
     attendedPreviousEvents: yup.boolean().required().label('Zúčastnil sa minuloročných akcií'),
     dateOfBirthDay: yup.number().min(1).max(31).required().label('Deň narodenia'),
     dateOfBirthMonth: yup.number().min(1).max(12).required().label('Mesiac narodenia'),
-    dateOfBirthYear: yup.number().min(1990).max(2018).required().label('Rok narodenia')
+    dateOfBirthYear: yup.number().min(1990).max(2020).required().label('Rok narodenia')
   }),
   medicine: yup.object().shape({
     takes: yup.boolean().required().label('Lieky'),
@@ -47,10 +47,7 @@ const schema = yup.object().shape({
   }),
   days: yup.array().of(yup.number().required()).min(1).required().label('Dni akcie'),
   promo_code: yup.string().nullable().label('Promo kód'),
-  notes: yup.string().nullable().label('Poznámka'),
-  memberShip: yup.object().shape({
-    attendedActivities: yup.string().required().label('Zúčastnené aktivity')
-  }).required().label('Členstvo')
+  notes: yup.string().nullable().label('Poznámka')
 });
 
 interface StepperProps {
@@ -180,7 +177,7 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit((data) => {
-        const { child, days, parent, notes, medicine, health, memberShip } = data
+        const { child, days, parent, notes, medicine, health } = data
         
         const padded_month = `${child.dateOfBirthMonth}`.padStart(2, '0')
         const padded_day = `${child.dateOfBirthDay}`.padStart(2, '0')
@@ -204,15 +201,11 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
             problems: health.problems ?? "",
           },
           memberShip: {
-            attendedActivities: memberShip.attendedActivities
+            attendedActivities: ""
           }
         }
 
         setPage(page + 1)
-
-        if (promo) {
-          registration.promo_code = promo
-        }
 
         const dataString = JSON.stringify(registration, null, 2)
         console.log(dataString)
@@ -274,7 +267,6 @@ const Stepper: React.FC<StepperProps> = ({ event, stats }) => {
             </IonCol>
             <IonCol size="2"></IonCol>
           </IonRow>
-          {/* <IonRow><pre>{JSON.stringify(watch(), null, 2)}</pre></IonRow> */}
           {
             event && stats &&
             <IonRow>
