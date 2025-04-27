@@ -61,6 +61,15 @@ services:
     secrets:
       - cloudflare_token
 
+  pgbackups:
+    image: prodrigestivill/postgres-backup-local:16-alpine
+    user: postgres:postgres
+    volumes:
+      - /root/salezko/backups:/backups
+    env_file: pgbackups.env
+    networks:
+      - backend
+
 secrets:
   cloudflare_token:
     file: ./cloudflared_token.env
