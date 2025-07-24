@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/labstack/gommon/random"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -34,6 +35,12 @@ const (
 	loggingEnabled = true
 	jwtSecret      = "top-secret"
 	promoSecret    = "secret"
+
+	// Setup for testcontainers that is used as fallback if env vars are not defined
+	dbImage    = "postgres:16-alpine"
+	dbName     = "users"
+	dbUser     = "user"
+	dbPassword = "password"
 )
 
 type CommonSuite struct {
@@ -47,6 +54,8 @@ type CommonSuite struct {
 	mailer       *SenderMock
 	promoManager repository.PromoManager
 	dbName       string
+
+	pgContainer *postgres.PostgresContainer
 }
 
 type SenderMock struct {
@@ -65,6 +74,42 @@ func (m *SenderMock) NotificationMail(ctx context.Context, req *templates.Notifi
 	return m.Called(ctx, req).Error(0)
 }
 
+func (s *CommonSuite) configForExistingDB() *config.DB {
+	var dbConfig config.DB
+	if err := envconfig.Process("", &dbConfig); err != nil {
+		return nil
+	}
+	return &dbConfig
+}
+
+func (s *CommonSuite) connectToTestContainers() *config.DB {
+	ctx := context.Background()
+
+	postgresContainer, err := postgres.Run(context.Background(),
+		dbImage,
+		postgres.WithDatabase(dbName),
+		postgres.WithUsername(dbUser),
+		postgres.WithPassword(dbPassword),
+		postgres.BasicWaitStrategies(),
+	)
+	s.Require().NoError(err)
+	s.pgContainer = postgresContainer
+
+	host, err := postgresContainer.Host(ctx)
+	s.Require().NoError(err)
+
+	port, err := postgresContainer.MappedPort(ctx, "5432")
+	s.Require().NoError(err)
+
+	return &config.DB{
+		User:     dbUser,
+		Password: dbPassword,
+		Host:     host,
+		Port:     uint(port.Int()),
+		Database: dbName,
+	}
+}
+
 func (s *CommonSuite) SetupSuite() {
 	var err error
 
@@ -75,8 +120,10 @@ func (s *CommonSuite) SetupSuite() {
 		s.logger = zap.NewNop()
 	}
 
-	var dbConfig config.DB
-	s.Require().NoError(envconfig.Process("", &dbConfig))
+	dbConfig := s.configForExistingDB()
+	if dbConfig == nil {
+		dbConfig = s.connectToTestContainers()
+	}
 
 	s.rootDB, err = dbConfig.Connect()
 	s.Require().NoError(err)
@@ -91,7 +138,7 @@ func (s *CommonSuite) SetupSuite() {
 
 	dbConfig.Database = s.dbName
 
-	err = repository.RunMigrations(s.logger, &dbConfig, s.dbName, "file://../../migrations")
+	err = repository.RunMigrations(s.logger, dbConfig, s.dbName, "file://../../migrations")
 	s.Require().NoError(err)
 
 	s.db, err = dbConfig.Connect()
@@ -99,13 +146,15 @@ func (s *CommonSuite) SetupSuite() {
 	s.dbx = sqlx.NewDb(s.db, "postgres")
 
 	s.promoManager = promo.NewJWTGenerator(s.logger, []byte(promoSecret), nil, nil)
-
 }
 
 func (s *CommonSuite) TearDownSuite() {
 	_ = s.db.Close()
 	_, _ = s.rootDB.Exec("DROP DATABASE " + s.dbName)
 	_ = s.rootDB.Close()
+	if s.pgContainer != nil {
+		_ = s.pgContainer.Terminate(context.Background())
+	}
 	_ = s.logger.Sync()
 }
 
