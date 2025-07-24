@@ -15,14 +15,13 @@ docker exec -i -t dev-api-1 /src/registrations_api add-user --username admin@sbb
 
 ## Database
 
-Database is running on default port 5432
-
+Migrations are applied on start and by default database port is not forwarded to localhost.
 
 ### Backup & Restore
 ```bash
-docker exec -t your-db-container pg_dumpall -c -U postgres > dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+docker exec -t dev-db-1 pg_dump -U postgres > dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
 ```
 
 ```bash
-cat your_dump.sql | docker exec -i your-db-container psql -U postgres
+cat your_dump.sql | docker exec -i dev-db-1 psql -U postgres
 ```
