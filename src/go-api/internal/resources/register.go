@@ -35,3 +35,26 @@ type RegisterReq struct {
 	DayIDs    []int   `json:"days" validate:"required"`
 	PromoCode *string `json:"promo_code"`
 }
+
+type RegisterResp struct {
+	Success       bool   `json:"success"`
+	RegisteredIDs []int  `json:"registeredIDs"`
+	Token         string `json:"token"`
+}
+
+func SuccessRegisterResponse(registeredIDs []int, token string) *RegisterResp {
+	return &RegisterResp{
+		Success:       true,
+		RegisteredIDs: registeredIDs,
+		Token:         token,
+	}
+}
+
+func UnsuccessfulRegisterResponse(registeredIDs []int) *RegisterResp {
+	return &RegisterResp{Success: false, RegisteredIDs: registeredIDs}
+}
+
+type PaymentNotificationResponse struct {
+	Sent        int  `json:"sent"`
+	FinishedAll bool `json:"finished_all"`
+}
