@@ -1,13 +1,13 @@
 package api_test
 
 import (
-	"github.com/MarekVigas/Postar-Jano/internal/mailer/templates"
+	"github.com/MarekVigas/Postar-Jano/internal/services/auth"
+	"github.com/MarekVigas/Postar-Jano/internal/services/mailer/templates"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/mock"
 	"net/http"
 	"testing"
 
-	"github.com/MarekVigas/Postar-Jano/internal/auth"
 	"github.com/MarekVigas/Postar-Jano/internal/model"
 
 	"github.com/jmoiron/sqlx"

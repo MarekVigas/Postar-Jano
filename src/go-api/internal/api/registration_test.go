@@ -3,6 +3,9 @@ package api_test
 import (
 	"fmt"
 	"github.com/MarekVigas/Postar-Jano/internal/model"
+	"github.com/MarekVigas/Postar-Jano/internal/services/auth"
+	"github.com/MarekVigas/Postar-Jano/internal/services/mailer/templates"
+	"github.com/MarekVigas/Postar-Jano/internal/services/promo"
 	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 	"net/http/httptest"
@@ -10,11 +13,6 @@ import (
 	"strconv"
 	"testing"
 	"time"
-
-	"github.com/MarekVigas/Postar-Jano/internal/promo"
-
-	"github.com/MarekVigas/Postar-Jano/internal/auth"
-	"github.com/MarekVigas/Postar-Jano/internal/mailer/templates"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/mock"
@@ -244,7 +242,7 @@ func (s *RegistrationSuite) TestRegister_NotActive_Promo_JWT() {
 }
 
 func (s *RegistrationSuite) TestRegister_NotActive_Promo_Simple() {
-	s.promoManager = promo.NewSimpleGenerator(s.logger)
+	s.promoRegistry = promo.NewRegistry(s.postgresDB, promo.NewSimpleGenerator(s.logger), s.mailer)
 	s.testRegister_NotActive_Promo()
 }
 

@@ -2,13 +2,11 @@ package api_test
 
 import (
 	"context"
+	"github.com/MarekVigas/Postar-Jano/internal/services/auth"
+	"github.com/MarekVigas/Postar-Jano/internal/services/mailer/templates"
+	"github.com/MarekVigas/Postar-Jano/internal/services/promo"
 	"net/http"
 	"testing"
-
-	"github.com/MarekVigas/Postar-Jano/internal/auth"
-	"github.com/MarekVigas/Postar-Jano/internal/mailer/templates"
-	"github.com/MarekVigas/Postar-Jano/internal/promo"
-	"github.com/MarekVigas/Postar-Jano/internal/repository"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/mock"
@@ -17,10 +15,10 @@ import (
 
 type PromoSuite struct {
 	CommonSuite
-	promoSetup func(commonSuite *CommonSuite) repository.PromoManager
+	promoSetup func(commonSuite *CommonSuite) *promo.Registry
 }
 
-func NewPromoSuite(promoSetup func(commonSuite *CommonSuite) repository.PromoManager) *PromoSuite {
+func NewPromoSuite(promoSetup func(commonSuite *CommonSuite) *promo.Registry) *PromoSuite {
 	return &PromoSuite{
 		CommonSuite: CommonSuite{},
 		promoSetup:  promoSetup,
@@ -29,7 +27,7 @@ func NewPromoSuite(promoSetup func(commonSuite *CommonSuite) repository.PromoMan
 
 func (s *PromoSuite) SetupSuite() {
 	s.CommonSuite.SetupSuite()
-	s.promoManager = s.promoSetup(&s.CommonSuite)
+	s.promoRegistry = s.promoSetup(&s.CommonSuite)
 }
 
 func (s *PromoSuite) TestGeneratePromoCode_Unauthorized() {
@@ -88,7 +86,7 @@ func (s *PromoSuite) TestGeneratePromoCode_OK() {
 		s.Require().NotEmpty(body["promo_code"])
 		promoCode, ok := body["promo_code"].(string)
 		s.Require().True(ok)
-		dbPromoCode, err := s.promoManager.ValidateToken(context.Background(), s.dbx, promoCode)
+		dbPromoCode, err := s.promoRegistry.ValidateTokenWithQueryerContext(context.Background(), s.dbx, promoCode)
 		s.Require().NoError(err)
 		s.Equal(dbPromoCode.Email, mail)
 	})
@@ -116,13 +114,13 @@ func (s *PromoSuite) TestValidatePromoCode_NonExisting() {
 
 func (s *PromoSuite) TestValidatePromoCode_AlreadyUsed() {
 	ctx := context.Background()
-	token, err := s.promoManager.GenerateToken(ctx, s.dbx, "test@test.com", 1)
+	token, err := s.promoRegistry.GenerateToken(ctx, "test@test.com", 1, false)
 	s.Require().NoError(err)
 
-	promoCode, err := s.promoManager.ValidateToken(ctx, s.dbx, token)
+	promoCode, err := s.promoRegistry.ValidateTokenWithQueryerContext(ctx, s.dbx, token)
 	s.Require().NoError(err)
 
-	s.Require().NoError(s.promoManager.MarkTokenUsage(ctx, s.dbx, promoCode.Key))
+	s.Require().NoError(s.promoRegistry.MarkTokenUsage(ctx, s.dbx, promoCode.Key))
 
 	req, rec := s.NewRequest(http.MethodPost, "/api/promo_codes/validate", echo.Map{"promo_code": token})
 	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
@@ -132,7 +130,7 @@ func (s *PromoSuite) TestValidatePromoCode_AlreadyUsed() {
 
 func (s *PromoSuite) TestValidatePromoCode_Valid() {
 	const regCount = 10
-	token, err := s.promoManager.GenerateToken(context.Background(), s.dbx, "test@test.com", regCount)
+	token, err := s.promoRegistry.GenerateToken(context.Background(), "test@test.com", regCount, false)
 	s.Require().NoError(err)
 
 	req, rec := s.NewRequest(http.MethodPost, "/api/promo_codes/validate", echo.Map{"promo_code": token})
@@ -142,13 +140,13 @@ func (s *PromoSuite) TestValidatePromoCode_Valid() {
 }
 
 func TestSimplePromoSuite(t *testing.T) {
-	suite.Run(t, NewPromoSuite(func(s *CommonSuite) repository.PromoManager {
-		return promo.NewSimpleGenerator(s.logger)
+	suite.Run(t, NewPromoSuite(func(s *CommonSuite) *promo.Registry {
+		return promo.NewRegistry(s.postgresDB, promo.NewSimpleGenerator(s.logger), s.mailer)
 	}))
 }
 
 func TestJWTPromoSuite(t *testing.T) {
-	suite.Run(t, NewPromoSuite(func(s *CommonSuite) repository.PromoManager {
-		return promo.NewJWTGenerator(s.logger, []byte(promoSecret), nil, nil)
+	suite.Run(t, NewPromoSuite(func(s *CommonSuite) *promo.Registry {
+		return promo.NewRegistry(s.postgresDB, promo.NewJWTGenerator(s.logger, []byte(promoSecret), nil, nil), s.mailer)
 	}))
 }

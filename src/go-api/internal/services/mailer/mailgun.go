@@ -4,11 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/MarekVigas/Postar-Jano/internal/services/mailer/templates"
 	"html/template"
 
 	"github.com/MarekVigas/Postar-Jano/internal/config"
-	"github.com/MarekVigas/Postar-Jano/internal/mailer/templates"
-
 	"github.com/mailgun/mailgun-go/v4"
 	"github.com/pkg/errors"
 

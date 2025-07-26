@@ -9,3 +9,19 @@ type PromoCodeReq struct {
 type ValidatePromoCodeReq struct {
 	PromoCode string `json:"promo_code"   validate:"required"`
 }
+
+type ValidatePromoCodeResp struct {
+	Status                 string `json:"status"`
+	AvailableRegistrations int    `json:"available_registrations"`
+}
+
+func ValidPromoCodeResp(availableRegistrations int) *ValidatePromoCodeResp {
+	return &ValidatePromoCodeResp{
+		Status:                 "ok",
+		AvailableRegistrations: availableRegistrations,
+	}
+}
+
+func InvalidPromoCodeResp() *ValidatePromoCodeResp {
+	return &ValidatePromoCodeResp{Status: "invalid"}
+}

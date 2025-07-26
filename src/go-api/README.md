@@ -1,3 +1,12 @@
+## Project structure
+
+- api package - registers all handlers and call services
+- config package - defines runtime config option for the application
+- model package - defines entities exchanges between services and repository
+- resources package - defines entities exchanged between handlers and services
+- repository package - implements DB queries
+- services package - implements the business logic, calls repository layer
+
 ## Running tests
 
 By default, tests start a postgres test container. If you want to run them

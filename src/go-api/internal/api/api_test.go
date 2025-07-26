@@ -6,6 +6,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/MarekVigas/Postar-Jano/internal/services/auth"
+	"github.com/MarekVigas/Postar-Jano/internal/services/events"
+	"github.com/MarekVigas/Postar-Jano/internal/services/mailer/templates"
+	"github.com/MarekVigas/Postar-Jano/internal/services/promo"
+	"github.com/MarekVigas/Postar-Jano/internal/services/registration"
+	"github.com/MarekVigas/Postar-Jano/internal/services/status"
 	"github.com/labstack/gommon/random"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"io"
@@ -13,12 +19,8 @@ import (
 	"net/http/httptest"
 	"time"
 
-	"github.com/MarekVigas/Postar-Jano/internal/auth"
-	"github.com/MarekVigas/Postar-Jano/internal/config"
-	"github.com/MarekVigas/Postar-Jano/internal/promo"
-
 	"github.com/MarekVigas/Postar-Jano/internal/api"
-	"github.com/MarekVigas/Postar-Jano/internal/mailer/templates"
+	"github.com/MarekVigas/Postar-Jano/internal/config"
 	"github.com/MarekVigas/Postar-Jano/internal/model"
 	"github.com/MarekVigas/Postar-Jano/internal/repository"
 
@@ -47,13 +49,14 @@ type CommonSuite struct {
 	suite.Suite
 	logger *zap.Logger
 
-	api          *api.API
-	rootDB       *sql.DB
-	db           *sql.DB
-	dbx          *sqlx.DB
-	mailer       *SenderMock
-	promoManager repository.PromoManager
-	dbName       string
+	api           *api.API
+	rootDB        *sql.DB
+	db            *sql.DB
+	dbx           *sqlx.DB
+	postgresDB    *repository.PostgresDB
+	mailer        *SenderMock
+	promoRegistry *promo.Registry
+	dbName        string
 
 	pgContainer *postgres.PostgresContainer
 }
@@ -144,8 +147,7 @@ func (s *CommonSuite) SetupSuite() {
 	s.db, err = dbConfig.Connect()
 	s.Require().NoError(err)
 	s.dbx = sqlx.NewDb(s.db, "postgres")
-
-	s.promoManager = promo.NewJWTGenerator(s.logger, []byte(promoSecret), nil, nil)
+	s.postgresDB = repository.NewPostgresDB(s.db)
 }
 
 func (s *CommonSuite) TearDownSuite() {
@@ -163,13 +165,16 @@ func (s *CommonSuite) SetupTest() {
 
 	s.mailer = &SenderMock{}
 
-	repo := repository.NewPostgresRepo(s.db, s.promoManager)
+	promoGenerator := promo.NewJWTGenerator(s.logger, []byte(promoSecret), nil, nil)
+	s.promoRegistry = promo.NewRegistry(s.postgresDB, promoGenerator, s.mailer)
+
 	s.api = api.New(
 		s.logger,
-		repo,
-		auth.NewFromDB(repo),
-		s.mailer,
-		[]byte(jwtSecret),
+		auth.NewFromDB(s.postgresDB, []byte(jwtSecret)),
+		events.NewManager(s.postgresDB),
+		s.promoRegistry,
+		registration.NewManager(s.postgresDB, s.promoRegistry, s.mailer),
+		status.NewChecker(s.postgresDB),
 	)
 	s.NoError(repository.Reset(ctx, s.db))
 }
