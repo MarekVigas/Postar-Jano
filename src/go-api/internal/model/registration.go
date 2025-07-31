@@ -1,12 +1,10 @@
 package model
 
 import (
-	"context"
 	"database/sql/driver"
 	"encoding/json"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
@@ -47,64 +45,6 @@ func (r *Registration) AmountToPay() int {
 		amount -= *r.Discount
 	}
 	return amount
-}
-
-func (r *Registration) Create(ctx context.Context, db sqlx.QueryerContext) (*Registration, error) {
-	var reg Registration
-	err := sqlx.GetContext(ctx, db, &reg, `
-			INSERT INTO registrations(
-				name,
-				surname,
-				gender,
-				amount,
-				token,
-				date_of_birth,
-				finished_school,
-				attended_previous,
-				city,
-				pills,
-				notes,
-				parent_name,
-				parent_surname,
-				email,
-				phone,
-				attended_activities,
-				problems,
-				promo_code,
-			    discount,
-				created_at,
-				updated_at
-			) VALUES (
-				$1,
-				$2,
-				$3,
-				$4,
-				$5,
-				$6,
-				$7,
-				$8,
-				$9,
-				$10,
-				$11,
-				$12,
-				$13,
-				$14,
-				$15,
-				$16,
-				$17,
-				$18,
-			    $19,
-				NOW(),
-				NOW()
-			) RETURNING *
-		`, r.Name, r.Surname, r.Gender, r.Amount, r.Token,
-		r.DateOfBirth, r.FinishedSchool, r.AttendedPrevious, r.City,
-		r.Pills, r.Notes, r.ParentName, r.ParentSurname, r.Email,
-		r.Phone, r.AttendedActivities, r.Problems, r.PromoCode, r.Discount)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create a registration")
-	}
-	return &reg, nil
 }
 
 type ExtendedRegistration struct {

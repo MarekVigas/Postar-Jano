@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/MarekVigas/Postar-Jano/internal/services/mailer/templates"
+	"github.com/MarekVigas/Postar-Jano/pkg/logger"
 	"html/template"
 
 	"github.com/MarekVigas/Postar-Jano/internal/config"
@@ -15,7 +16,6 @@ import (
 )
 
 type Client struct {
-	logger  *zap.Logger
 	mailgun *mailgun.MailgunImpl
 
 	confirmation *template.Template
@@ -24,7 +24,7 @@ type Client struct {
 	sender       string
 }
 
-func NewClient(cfg *config.Mailer, logger *zap.Logger) (*Client, error) {
+func NewClient(cfg *config.Mailer) (*Client, error) {
 	mg := mailgun.NewMailgun(cfg.MailgunDomain, cfg.MailgunKey)
 	if cfg.EUBase {
 		mg.SetAPIBase(mailgun.APIBaseEU)
@@ -50,7 +50,6 @@ func NewClient(cfg *config.Mailer, logger *zap.Logger) (*Client, error) {
 	}
 
 	return &Client{
-		logger:       logger,
 		mailgun:      mg,
 		confirmation: confirmationTemplate,
 		promo:        promoTemplate,
@@ -93,13 +92,13 @@ func (c *Client) NotificationMail(ctx context.Context, req *templates.Notificati
 }
 
 func (c *Client) send(ctx context.Context, subject string, body string, recipient string) error {
-	msg := c.mailgun.NewMessage(c.sender, subject, "", recipient)
-	msg.SetHtml(body)
+	msg := mailgun.NewMessage(c.sender, subject, "", recipient)
+	msg.SetHTML(body)
 
 	resp, id, err := c.mailgun.Send(ctx, msg)
 	if err != nil {
 		return errors.Wrap(err, "failed to send a message")
 	}
-	c.logger.Info("Message sent", zap.String("id", id), zap.String("resp", resp))
+	logger.FromCtx(ctx).Info("Message sent", zap.String("id", id), zap.String("resp", resp))
 	return nil
 }

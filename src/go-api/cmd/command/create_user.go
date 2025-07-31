@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"github.com/MarekVigas/Postar-Jano/internal/repository"
 
 	"github.com/MarekVigas/Postar-Jano/internal/config"
 	"github.com/MarekVigas/Postar-Jano/internal/model"
@@ -61,9 +62,10 @@ func runAddUser() error {
 		}
 		defer db.Close()
 
-		_, err = (&model.Owner{
+		ctx := t.Context(context.Background())
+		_, err = repository.CreateOwner(ctx, sqlx.NewDb(db, "postgres"), model.Owner{
 			Username: username,
-		}).Create(t.Context(context.Background()), sqlx.NewDb(db, "postgres"), password)
+		}, password)
 
 		if err != nil {
 			logger.Error("Failed to create user.", zap.Error(err))

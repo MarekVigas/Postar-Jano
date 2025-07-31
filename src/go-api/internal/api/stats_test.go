@@ -3,6 +3,7 @@ package api_test
 import (
 	"context"
 	"fmt"
+	"github.com/MarekVigas/Postar-Jano/internal/repository"
 	"net/http"
 	"testing"
 
@@ -20,19 +21,19 @@ func (s *StatsSuite) TestGetStat_OK() {
 	event := s.InsertEvent()
 
 	dayOne := event.Days[0]
-	dayTwo := model.Day{
+	dayTwo, err := repository.CreateDay(ctx, s.dbx, model.Day{
 		Description: "bla",
 		Capacity:    10,
 		LimitBoys:   s.intRef(5),
 		LimitGirls:  nil,
 		Price:       42,
 		EventID:     event.ID,
-	}
-	s.Require().NoError((&dayTwo).Create(ctx, s.dbx))
+	})
+	s.Require().NoError(err)
 
 	reg := s.createRegistration()
 
-	_, err := s.db.Exec(`INSERT INTO signups(
+	_, err = s.db.Exec(`INSERT INTO signups(
 		day_id,
 		registration_id,
 		state,
@@ -52,7 +53,7 @@ func (s *StatsSuite) TestGetStat_OK() {
 	s.AssertServerResponseArray(req, rec, http.StatusOK, func(body []interface{}) {
 		s.Equal([]interface{}{
 			s.dayToResponse(&dayOne, 0, 0),
-			s.dayToResponse(&dayTwo, 0, 1),
+			s.dayToResponse(dayTwo, 0, 1),
 		}, body)
 	})
 }

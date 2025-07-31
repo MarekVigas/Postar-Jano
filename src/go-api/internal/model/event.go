@@ -1,12 +1,5 @@
 package model
 
-import (
-	"context"
-
-	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
-)
-
 type Event struct {
 	ID                int     `json:"id" db:"id"`
 	Title             string  `json:"title" db:"title"`
@@ -26,8 +19,9 @@ type Event struct {
 	IBAN              string  `json:"iban" db:"iban"`
 	PromoDiscount     int     `json:"promo_discount" db:"promo_discount"`
 	PaymentReference  string  `json:"payment_reference" db:"payment_reference"`
-	EventOwner        `json:"owner"`
-	Days              []Day `json:"days"`
+	// Refactor embeded struct
+	EventOwner `json:"owner"`
+	Days       []Day `json:"days"`
 }
 
 type EventOwner struct {
@@ -38,32 +32,4 @@ type EventOwner struct {
 	OwnerPhone   string `json:"phone" db:"owner_phone"`
 	OwnerPhoto   string `json:"photo" db:"owner_photo"`
 	OwnerGender  string `json:"gender" db:"owner_gender"`
-}
-
-func (e *Event) Create(ctx context.Context, db sqlx.ExtContext) error {
-	return errors.WithStack(sqlx.GetContext(ctx, db, e, `
-		INSERT INTO events(
-			title,
-			description,
-			date_from,
-			date_to,
-			location,
-			min_age,
-			max_age,
-			info,
-			photo,
-			time,
-			price,
-			mail_info,
-			active,
-			owner_id,
-		    iban,
-		    payment_reference,
-		    promo_discount
-		) 
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
-		RETURNING *
-	`, e.Title, e.Description, e.DateFrom, e.DateTo, e.Location, e.MinAge, e.MaxAge,
-		e.Info, e.Photo, e.Time, e.Price, e.MailInfo, e.Active, e.OwnerID, e.IBAN,
-		e.PaymentReference, e.PromoDiscount))
 }

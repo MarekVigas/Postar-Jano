@@ -127,10 +127,63 @@ func (m *Manager) SendPaymentNotifications(ctx context.Context) (resources.Payme
 	}, nil
 }
 
+func PtrOrNil[T comparable](v T) *T {
+	var zero T
+	if v == zero {
+		return nil
+	}
+	return &v
+}
+
+func (m *Manager) writeRegistrationAndSignupDataIntoDB(ctx context.Context, tx *sqlx.Tx, req *resources.RegisterReq,
+	amount int, token string, promoKey string, discount int) (int, error) {
+
+	// Insert into registrations.
+	reg, err := repository.CreateRegistration(ctx, tx, model.Registration{
+		Name:               req.Child.Name,
+		Surname:            req.Child.Surname,
+		Gender:             req.Child.Gender,
+		DateOfBirth:        req.Child.DateOfBirth,
+		FinishedSchool:     req.Child.FinishedSchool,
+		AttendedPrevious:   req.Child.AttendedPrevious,
+		AttendedActivities: req.Membership.AttendedActivities,
+		City:               req.Child.City,
+		Pills:              req.Medicine.Pills,
+		Problems:           req.Health.Problems,
+		Notes:              req.Notes,
+		ParentName:         req.Parent.Name,
+		ParentSurname:      req.Parent.Surname,
+		Email:              req.Parent.Email,
+		Phone:              req.Parent.Phone,
+		Amount:             amount,
+		Token:              token,
+		PromoCode:          PtrOrNil(promoKey),
+		Discount:           PtrOrNil(discount),
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	// Insert into signups.
+	for _, dayID := range req.DayIDs {
+		signup := model.Signup{
+			DayID:          dayID,
+			RegistrationID: reg.ID,
+			State:          "init",
+		}
+		if _, err := repository.CreateSignup(ctx, tx, signup); err != nil {
+			return 0, errors.Wrap(err, "failed to create a signup")
+		}
+	}
+	return reg.ID, nil
+}
+
 func (m *Manager) CreateNew(ctx context.Context, req *resources.RegisterReq, eventID int) (*resources.RegisterResp, error) {
 	var (
-		err error
-		res model.RegResult
+		err                 error
+		createdRegistration *model.ExtendedRegistration
+		event               *model.Event
+		registeredDayIDs    []int
 	)
 
 	token, err := uuid.NewUUID()
@@ -138,11 +191,10 @@ func (m *Manager) CreateNew(ctx context.Context, req *resources.RegisterReq, eve
 		logger.FromCtx(ctx).Error("Failed to generate uuid", zap.Error(err))
 		return nil, errors.WithStack(err)
 	}
-	res.Token = token.String()
 
 	if err := m.postgresDB.WithTxx(ctx, func(ctx context.Context, tx *sqlx.Tx) error {
 		var err error
-		res.Event, err = m.findAndValidateEvent(ctx, tx, eventID, req.PromoCode)
+		event, err = m.findAndValidateEvent(ctx, tx, eventID, req.PromoCode)
 		if err != nil {
 			return err
 		}
@@ -152,90 +204,33 @@ func (m *Manager) CreateNew(ctx context.Context, req *resources.RegisterReq, eve
 			return err
 		}
 
-		if res.RegisteredIDs, err = m.validateEventCapacity(ctx, tx, err, eventID, req); err != nil {
+		if registeredDayIDs, err = m.validateEventCapacity(ctx, tx, err, eventID, req); err != nil {
 			return err
 		}
-		res.RegisteredDesc = m.registeredDescriptions(res.RegisteredIDs, res.Event)
 
-		amount, discount := m.computePriceAndDiscount(res.RegisteredIDs, res.Event, promoKey != "")
+		amount, discount := m.computePriceAndDiscount(registeredDayIDs, event, promoKey != "")
 
-		newNullString := func(s string) *string {
-			if s != "" {
-				return &s
-			}
-			return nil
-		}
+		regID, err := m.writeRegistrationAndSignupDataIntoDB(ctx, tx, req, amount, token.String(), promoKey, discount)
 
-		newNullInt := func(val int) *int {
-			if val != 0 {
-				return &val
-			}
-			return nil
-		}
-
-		// Insert into registrations.
-		reg, err := (&model.Registration{
-			Name:               req.Child.Name,
-			Surname:            req.Child.Surname,
-			Gender:             req.Child.Gender,
-			DateOfBirth:        req.Child.DateOfBirth,
-			FinishedSchool:     req.Child.FinishedSchool,
-			AttendedPrevious:   req.Child.AttendedPrevious,
-			AttendedActivities: req.Membership.AttendedActivities,
-			City:               req.Child.City,
-			Pills:              req.Medicine.Pills,
-			Problems:           req.Health.Problems,
-			Notes:              req.Notes,
-			ParentName:         req.Parent.Name,
-			ParentSurname:      req.Parent.Surname,
-			Email:              req.Parent.Email,
-			Phone:              req.Parent.Phone,
-			Amount:             amount,
-			Token:              token.String(),
-			PromoCode:          newNullString(promoKey),
-			Discount:           newNullInt(discount),
-		}).Create(ctx, tx)
+		// Fetch the created registration
+		createdRegistration, err = repository.FindRegistrationByID(ctx, tx, regID)
 		if err != nil {
 			return err
 		}
-		res.Reg = *reg
-
-		// Insert into signups.
-		for _, dayID := range req.DayIDs {
-			_, err := tx.ExecContext(ctx, `
-			INSERT INTO signups(
-				day_id,
-				registration_id,
-				state,
-				created_at,
-				updated_at
-			) VALUES (
-				$1,
-				$2,
-				$3,
-				NOW(),
-				NOW()
-			) RETURNING *
-		`, dayID, res.Reg.ID, "init")
-			if err != nil {
-				return errors.Wrap(err, "failed to create a signup")
-			}
-		}
-
 		return nil
 	}); err != nil {
 		if errors.Cause(err) == ErrOverLimit {
-			return resources.UnsuccessfulRegisterResponse(res.RegisteredIDs), nil
+			return resources.UnsuccessfulRegisterResponse(registeredDayIDs), nil
 		}
 		return nil, err
 	}
 
-	resp, err := m.sendConfirmationMail(ctx, res, err)
+	resp, err := m.sendConfirmationMail(ctx, createdRegistration, event)
 	if err != nil {
 		return resp, err
 	}
 
-	return resources.SuccessRegisterResponse(res.RegisteredIDs, res.Token), nil
+	return resources.SuccessRegisterResponse(registeredDayIDs, token.String()), nil
 }
 
 func (m *Manager) findAndValidateEvent(ctx context.Context, tx *sqlx.Tx, eventID int, promoCode *string) (*model.Event, error) {
@@ -333,62 +328,47 @@ func (m *Manager) computePriceAndDiscount(registeredIDs []int, event *model.Even
 	return amount, discount
 }
 
-func (m *Manager) registeredDescriptions(registeredIDs []int, event *model.Event) []string {
+func (m *Manager) registeredDayDescriptions(registration *model.ExtendedRegistration) []string {
 	var descriptions []string
-	for _, dID := range registeredIDs {
-		for _, d := range event.Days {
-			if dID != d.ID {
-				continue
-			}
-			descriptions = append(descriptions, d.Description)
-			break
-		}
+	for _, day := range registration.DayNames {
+		descriptions = append(descriptions, day.Description)
 	}
 	return descriptions
 }
 
-func (m *Manager) sendConfirmationMail(ctx context.Context, res model.RegResult, err error) (*resources.RegisterResp, error) {
-	pills := "-"
-	if res.Reg.Pills != nil {
-		pills = *res.Reg.Pills
+func (m *Manager) sendConfirmationMail(ctx context.Context, registration *model.ExtendedRegistration, event *model.Event) (*resources.RegisterResp, error) {
+	valueFromPtr := func(str *string, defaultValue string) string {
+		if str == nil {
+			return defaultValue
+		}
+		return *str
 	}
 
-	restrictions := "-"
-	if res.Reg.Problems != nil {
-		restrictions = *res.Reg.Problems
-	}
-	var info string
-	if res.Event.MailInfo != nil {
-		info = *res.Event.MailInfo
-	}
-	var regInfo string
-	if res.Event.Info != nil {
-		regInfo = *res.Event.Info
-	}
-
-	payment, err := m.registrationToPaymentDetails(&res)
+	payment, err := m.registrationToPaymentDetails(&registration.Registration, event)
 	if err != nil {
 		logger.FromCtx(ctx).Error("failed to create payment data", zap.Error(err))
 		return nil, err
 	}
 
+	registeredDayDescriptions := m.registeredDayDescriptions(registration)
+
 	// Send confirmation mail.
 	if err := m.emailSender.ConfirmationMail(ctx, &templates.ConfirmationReq{
-		Mail:          res.Reg.Email,
-		ParentName:    res.Reg.ParentName,
-		ParentSurname: res.Reg.ParentSurname,
-		EventName:     res.Event.Title,
-		Name:          res.Reg.Name,
-		Surname:       res.Reg.Surname,
-		Pills:         pills,
-		Restrictions:  restrictions,
-		Text:          res.Event.OwnerPhone + " " + res.Event.OwnerEmail,
-		PhotoURL:      res.Event.OwnerPhoto,
-		Sum:           res.Reg.AmountToPay(),
-		Owner:         res.Event.OwnerName + " " + res.Event.OwnerSurname,
-		Days:          res.RegisteredDesc,
-		Info:          info,
-		RegInfo:       regInfo,
+		Mail:          registration.Email,
+		ParentName:    registration.ParentName,
+		ParentSurname: registration.ParentSurname,
+		EventName:     event.Title,
+		Name:          registration.Name,
+		Surname:       registration.Surname,
+		Pills:         valueFromPtr(registration.Pills, "-"),
+		Restrictions:  valueFromPtr(registration.Problems, "-"),
+		Text:          event.OwnerPhone + " " + event.OwnerEmail,
+		PhotoURL:      event.OwnerPhoto,
+		Sum:           registration.AmountToPay(),
+		Owner:         event.OwnerName + " " + event.OwnerSurname,
+		Days:          registeredDayDescriptions,
+		Info:          valueFromPtr(event.MailInfo, ""),
+		RegInfo:       valueFromPtr(event.Info, ""),
 		Payment:       payment,
 	}); err != nil {
 		logger.FromCtx(ctx).Error("Failed to send a confirmation mail.", zap.Error(err))
@@ -397,22 +377,22 @@ func (m *Manager) sendConfirmationMail(ctx context.Context, res model.RegResult,
 	return nil, nil
 }
 
-func (m *Manager) registrationToPaymentDetails(reg *model.RegResult) (templates.PaymentDetails, error) {
+func (m *Manager) registrationToPaymentDetails(reg *model.Registration, event *model.Event) (templates.PaymentDetails, error) {
 	link, err := payme.NewBuilder().
-		IBAN(reg.Event.IBAN).
-		Amount(reg.Reg.AmountToPay()).
-		PaymentReference(reg.Event.PaymentReference).
-		SpecificSymbol(reg.Reg.SpecificSymbol).
-		Note(fmt.Sprintf("%s %s %s", reg.Event.Title, reg.Reg.Name, reg.Reg.Surname)).
+		IBAN(event.IBAN).
+		Amount(reg.AmountToPay()).
+		PaymentReference(event.PaymentReference).
+		SpecificSymbol(reg.SpecificSymbol).
+		Note(fmt.Sprintf("%s %s %s", event.Title, reg.Name, reg.Surname)).
 		Build()
 	if err != nil {
 		return templates.PaymentDetails{}, err
 	}
 
 	details := templates.PaymentDetails{
-		IBAN:             reg.Event.IBAN,
-		PaymentReference: reg.Event.PaymentReference,
-		SpecificSymbol:   reg.Reg.SpecificSymbol,
+		IBAN:             event.IBAN,
+		PaymentReference: event.PaymentReference,
+		SpecificSymbol:   reg.SpecificSymbol,
 		Link:             link,
 		QRCode:           "", // TODO
 	}
