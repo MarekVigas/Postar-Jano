@@ -241,7 +241,7 @@ func (s *CommonSuite) AssertServerResponseArray(
 
 func (s *CommonSuite) InsertEvent() *model.Event {
 	ctx := context.Background()
-	owner, err := (&model.Owner{
+	owner, err := repository.CreateOwner(ctx, s.dbx, model.Owner{
 		Name:     "John",
 		Surname:  "Doe",
 		Email:    "john@doe.com",
@@ -249,10 +249,12 @@ func (s *CommonSuite) InsertEvent() *model.Event {
 		Phone:    "123",
 		Photo:    "phot.jpg",
 		Gender:   "M",
-	}).Create(ctx, s.dbx, "bla bla")
+	}, "bla bla")
 	s.Require().NoError(err)
 
-	event := model.Event{
+	eventOwner := s.eventOwnerFromModel(owner)
+
+	event, err := repository.CreateEvent(ctx, s.dbx, model.Event{
 		Title:            "Camp 42",
 		Description:      "Lorem ipsum",
 		DateFrom:         "15 june 2020",
@@ -266,27 +268,29 @@ func (s *CommonSuite) InsertEvent() *model.Event {
 		IBAN:             "SK7409000000005073149693",
 		PromoDiscount:    2,
 		PaymentReference: "202401",
-		EventOwner:       s.eventOwnerFromModel(owner),
-	}
-	s.Require().NoError((&event).Create(ctx, s.dbx))
+		EventOwner:       eventOwner,
+	})
+	s.Require().NoError(err)
 
-	day := model.Day{
+	event.EventOwner = eventOwner
+
+	day, err := repository.CreateDay(ctx, s.dbx, model.Day{
 		Description: "Desc",
 		Capacity:    10,
 		LimitBoys:   s.intRef(5),
 		LimitGirls:  s.intRef(5),
 		Price:       12,
 		EventID:     event.ID,
-	}
-	s.Require().NoError((&day).Create(ctx, s.dbx))
+	})
+	s.Require().NoError(err)
 
-	event.Days = append(event.Days, day)
+	event.Days = append(event.Days, *day)
 
-	return &event
+	return event
 }
 
 func (s *CommonSuite) createRegistration() *model.Registration {
-	reg, err := (&model.Registration{
+	reg, err := repository.CreateRegistration(context.Background(), s.dbx, model.Registration{
 		Name:               "sdafa",
 		Surname:            "asdfasf",
 		Gender:             "female",
@@ -307,7 +311,7 @@ func (s *CommonSuite) createRegistration() *model.Registration {
 		Discount:           nil,
 		AdminNote:          "asdfas",
 		Token:              "asfasfd",
-	}).Create(context.Background(), s.dbx)
+	})
 	s.Require().NoError(err)
 
 	return reg

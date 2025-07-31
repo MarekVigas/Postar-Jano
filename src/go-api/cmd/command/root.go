@@ -65,7 +65,7 @@ func runMain() error {
 	}
 	defer postgres.Close()
 
-	mailerClient, err := mailer.NewClient(&c.Mailer, logger)
+	mailerClient, err := mailer.NewClient(&c.Mailer)
 	if err != nil {
 		return errors.Wrap(err, "failed to setup mailerClient")
 	}
