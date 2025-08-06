@@ -31,22 +31,7 @@ func (s *StatsSuite) TestGetStat_OK() {
 	})
 	s.Require().NoError(err)
 
-	reg := s.createRegistration()
-
-	_, err = s.db.Exec(`INSERT INTO signups(
-		day_id,
-		registration_id,
-		state,
-		created_at,
-		updated_at
-	) VALUES (
-		$1,
-		$2,
-		'sadf',
-		NOW(),
-		NOW()
-	)`, dayTwo.ID, reg.ID)
-	s.Require().NoError(err)
+	_ = s.createRegistration(dayTwo.ID)
 
 	u := fmt.Sprintf("/api/stats/%d", event.ID)
 	req, rec := s.NewRequest(http.MethodGet, u, nil)

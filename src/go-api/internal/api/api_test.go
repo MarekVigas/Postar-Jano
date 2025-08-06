@@ -77,6 +77,10 @@ func (m *SenderMock) NotificationMail(ctx context.Context, req *templates.Notifi
 	return m.Called(ctx, req).Error(0)
 }
 
+func (m *SenderMock) PaymentReminderMail(ctx context.Context, req *templates.PaymentReminderReq) error {
+	return m.Called(ctx, req).Error(0)
+}
+
 func (s *CommonSuite) configForExistingDB() *config.DB {
 	var dbConfig config.DB
 	if err := envconfig.Process("", &dbConfig); err != nil {
@@ -289,8 +293,10 @@ func (s *CommonSuite) InsertEvent() *model.Event {
 	return event
 }
 
-func (s *CommonSuite) createRegistration() *model.Registration {
-	reg, err := repository.CreateRegistration(context.Background(), s.dbx, model.Registration{
+func (s *CommonSuite) createRegistration(dayID int, modifiers ...func(*model.Registration)) *model.Registration {
+	ctx := context.Background()
+
+	r := model.Registration{
 		Name:               "sdafa",
 		Surname:            "asdfasf",
 		Gender:             "female",
@@ -304,13 +310,27 @@ func (s *CommonSuite) createRegistration() *model.Registration {
 		Notes:              "",
 		ParentName:         "sadfa",
 		ParentSurname:      "asdfa",
-		Email:              "",
+		Email:              "xy@z.com",
 		Phone:              "",
-		Amount:             0,
+		Amount:             10,
 		Payed:              nil,
 		Discount:           nil,
 		AdminNote:          "asdfas",
 		Token:              "asfasfd",
+	}
+	for _, modifier := range modifiers {
+		modifier(&r)
+	}
+
+	reg, err := repository.CreateRegistration(ctx, s.dbx, r)
+	s.Require().NoError(err)
+
+	_, err = repository.CreateSignup(ctx, s.dbx, model.Signup{
+		DayID:          dayID,
+		RegistrationID: reg.ID,
+		State:          "init",
+		UpdatedAt:      time.Now(),
+		CreatedAt:      time.Now(),
 	})
 	s.Require().NoError(err)
 

@@ -28,6 +28,7 @@ type PromoValidator interface {
 type EmailSender interface {
 	ConfirmationMail(ctx context.Context, req *templates.ConfirmationReq) error
 	NotificationMail(ctx context.Context, req *templates.NotificationReq) error
+	PaymentReminderMail(ctx context.Context, req *templates.PaymentReminderReq) error
 }
 
 type Manager struct {
@@ -125,6 +126,68 @@ func (m *Manager) SendPaymentNotifications(ctx context.Context) (resources.Payme
 		Sent:        sent,
 		FinishedAll: finishedAll,
 	}, nil
+}
+
+func (m *Manager) SendPaymentReminder(ctx context.Context, eventID int) (*resources.PaymentReminderResponse, error) {
+	registrations, err := repository.ListEventRegistrations(ctx, m.postgresDB.QueryerContext(), eventID)
+	if err != nil {
+		logger.FromCtx(ctx).Error("Failed to list registrations", zap.Error(err))
+		return nil, err
+	}
+
+	var event *model.Event
+
+	if err := m.postgresDB.WithTxx(ctx, func(ctx context.Context, tx *sqlx.Tx) error {
+		event, err = repository.FindEvent(ctx, tx, eventID)
+		return err
+	}); err != nil {
+		logger.FromCtx(ctx).Error("Failed to find event", zap.Error(err))
+		return nil, err
+	}
+
+	var (
+		sent        int
+		finishedAll bool
+	)
+
+	for i := range registrations {
+		if registrations[i].Payed != nil {
+			continue
+		}
+		if err := m.remindPayment(ctx, &registrations[i], event); err != nil {
+			// Skip the error
+			logger.FromCtx(ctx).Error("Failed to send reminder", zap.Error(err))
+			return &resources.PaymentReminderResponse{
+				Sent:        sent,
+				FinishedAll: finishedAll,
+			}, nil
+		}
+		sent++
+	}
+	finishedAll = true
+
+	return &resources.PaymentReminderResponse{
+		Sent:        sent,
+		FinishedAll: finishedAll,
+	}, nil
+}
+
+func (m *Manager) remindPayment(ctx context.Context, reg *model.ExtendedRegistration, event *model.Event) error {
+	paymentDetails, err := m.registrationToPaymentDetails(&reg.Registration, event)
+	if err != nil {
+		return err
+	}
+
+	return m.emailSender.PaymentReminderMail(ctx, &templates.PaymentReminderReq{
+		Mail:          reg.Email,
+		ParentName:    reg.ParentName,
+		ParentSurname: reg.ParentSurname,
+		EventName:     event.Title,
+		Name:          reg.Name,
+		Surname:       reg.Surname,
+		Sum:           reg.AmountToPay(),
+		Payment:       paymentDetails,
+	})
 }
 
 func PtrOrNil[T comparable](v T) *T {
@@ -231,6 +294,46 @@ func (m *Manager) CreateNew(ctx context.Context, req *resources.RegisterReq, eve
 	}
 
 	return resources.SuccessRegisterResponse(registeredDayIDs, token.String()), nil
+}
+
+func (m *Manager) ResendConfirmation(ctx context.Context, regID int, email string) error {
+	var (
+		reg   *model.ExtendedRegistration
+		event *model.Event
+	)
+
+	err := m.postgresDB.WithTxx(ctx, func(ctx context.Context, tx *sqlx.Tx) error {
+		// Update email
+		err := repository.UpdateRegistrationEmail(ctx, tx, regID, email)
+		if err != nil {
+			logger.UnexpectedError(ctx, err).Error("Failed to update registration email", zap.Error(err))
+			return err
+		}
+
+		reg, err = repository.FindRegistrationByID(ctx, tx, regID)
+		if err != nil {
+			logger.FromCtx(ctx).Error("Failed to find registration", zap.Error(err))
+			return err
+		}
+
+		event, err = repository.FindEvent(ctx, tx, reg.EventID)
+		if err != nil {
+			logger.FromCtx(ctx).Error("Failed to find event", zap.Error(err))
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// Resend confirmation email
+	_, err = m.sendConfirmationMail(ctx, reg, event)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (m *Manager) findAndValidateEvent(ctx context.Context, tx *sqlx.Tx, eventID int, promoCode *string) (*model.Event, error) {

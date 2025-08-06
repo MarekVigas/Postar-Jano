@@ -18,10 +18,12 @@ import (
 type Client struct {
 	mailgun *mailgun.MailgunImpl
 
-	confirmation *template.Template
-	promo        *template.Template
-	notification *template.Template
-	sender       string
+	confirmation    *template.Template
+	promo           *template.Template
+	notification    *template.Template
+	paymentReminder *template.Template
+
+	sender string
 }
 
 func NewClient(cfg *config.Mailer) (*Client, error) {
@@ -88,6 +90,19 @@ func (c *Client) NotificationMail(ctx context.Context, req *templates.Notificati
 	}
 
 	return c.send(ctx, fmt.Sprintf("Prijatie platby za %s", req.EventName), b.String(),
+		fmt.Sprintf("<%s>", req.Mail))
+}
+
+func (c *Client) PaymentReminderMail(ctx context.Context, req *templates.PaymentReminderReq) error {
+	if c.paymentReminder == nil {
+		return errors.New("payment reminder template not set")
+	}
+	var b bytes.Buffer
+	if err := c.paymentReminder.Execute(&b, req); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return c.send(ctx, fmt.Sprintf("Neevediujeme uhradu za %s", req.EventName), b.String(),
 		fmt.Sprintf("<%s>", req.Mail))
 }
 

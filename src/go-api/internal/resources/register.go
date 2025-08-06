@@ -58,3 +58,16 @@ type PaymentNotificationResponse struct {
 	Sent        int  `json:"sent"`
 	FinishedAll bool `json:"finished_all"`
 }
+
+type PaymentReminderRequest struct {
+	EventId int `json:"event_id"`
+}
+
+type PaymentReminderResponse struct {
+	Sent        int  `json:"sent"`
+	FinishedAll bool `json:"finished_all"`
+}
+
+type ResendConfirmationRequest struct {
+	Email string `json:"email"   validate:"email,required"`
+}

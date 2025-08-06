@@ -125,8 +125,42 @@ func (api *API) UpdateRegistration(c echo.Context) error {
 	return c.JSON(http.StatusAccepted, nil)
 }
 
+func (api *API) ResendConfirmation(c echo.Context) error {
+	regID, err := api.getIntParam(c, "id")
+	if err != nil {
+		return err
+	}
+
+	var req resources.ResendConfirmationRequest
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+	if errs := validateStruct(&req); errs != nil {
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"errors": errs})
+	}
+
+	if err := api.registrationManager.ResendConfirmation(c.Request().Context(), regID, req.Email); err != nil {
+		return api.handleError(err)
+	}
+	return c.JSON(http.StatusAccepted, nil)
+
+}
+
 func (api *API) SendPaymentNotification(c echo.Context) error {
 	resp, err := api.registrationManager.SendPaymentNotifications(c.Request().Context())
+	if err != nil {
+		return api.handleError(err)
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (api *API) SendPaymentReminder(c echo.Context) error {
+	var req resources.PaymentReminderRequest
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	resp, err := api.registrationManager.SendPaymentReminder(c.Request().Context(), req.EventId)
 	if err != nil {
 		return api.handleError(err)
 	}

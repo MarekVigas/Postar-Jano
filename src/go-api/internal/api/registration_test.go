@@ -1,8 +1,10 @@
 package api_test
 
 import (
+	"context"
 	"fmt"
 	"github.com/MarekVigas/Postar-Jano/internal/model"
+	"github.com/MarekVigas/Postar-Jano/internal/repository"
 	"github.com/MarekVigas/Postar-Jano/internal/services/auth"
 	"github.com/MarekVigas/Postar-Jano/internal/services/mailer/templates"
 	"github.com/MarekVigas/Postar-Jano/internal/services/promo"
@@ -340,7 +342,8 @@ func (s *RegistrationSuite) TestDelete_NotFound() {
 }
 
 func (s *RegistrationSuite) TestDelete_OK() {
-	reg := s.createRegistration()
+	event := s.InsertEvent()
+	reg := s.createRegistration(event.Days[0].ID)
 
 	u := fmt.Sprintf("/api/registrations/%d", reg.ID)
 	req, rec := s.NewRequest(http.MethodDelete, u, nil)
@@ -369,6 +372,148 @@ func (s *RegistrationSuite) expectedPayMeLink(
 	v.Set("PI", fmt.Sprintf("/VS%s/SS%s/KS%s", event.PaymentReference, specificSymbol, ""))
 	v.Set("MSG", fmt.Sprintf("%s %s %s", event.Title, name, surname))
 	return "https://payme.sk?" + v.Encode()
+}
+
+func (s *RegistrationSuite) TestResendConfirmationEmail_Unauthorized() {
+	req, rec := s.NewRequest(http.MethodPost, "/api/registrations/42/resend_confirmation", nil)
+	s.AssertServerResponseObject(req, rec, http.StatusUnauthorized, nil)
+}
+
+func (s *RegistrationSuite) TestResendConfirmationEmail_InvalidEmail() {
+	req, rec := s.NewRequest(http.MethodPost, "/api/registrations/42/resend_confirmation", nil)
+	s.AuthorizeRequest(req, &auth.Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject: "admin@sbb.sk",
+		},
+	})
+	s.AssertServerResponseObject(req, rec, http.StatusUnprocessableEntity, func(body echo.Map) {
+		s.Equal(echo.Map{
+			"errors": map[string]interface{}{"email": "invalid"},
+		}, body)
+	})
+}
+
+func (s *RegistrationSuite) TestResendConfirmationEmail_NotFound() {
+	req, rec := s.NewRequest(http.MethodPost, "/api/registrations/42/resend_confirmation", echo.Map{"email": "a@b.com"})
+	s.AuthorizeRequest(req, &auth.Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject: "admin@sbb.sk",
+		},
+	})
+	s.AssertServerResponseObject(req, rec, http.StatusNotFound, nil)
+}
+
+func (s *RegistrationSuite) TestResendConfirmationEmail_Success() {
+	event := s.InsertEvent()
+	reg := s.createRegistration(event.Days[0].ID)
+
+	const newEmail = "a@b.com"
+
+	s.mailer.On("ConfirmationMail", mock.Anything, &templates.ConfirmationReq{
+		Mail:          newEmail,
+		ParentName:    reg.ParentName,
+		ParentSurname: reg.ParentSurname,
+		EventName:     event.Title,
+		Name:          reg.Name,
+		Surname:       reg.Surname,
+		Pills:         "-",
+		Restrictions:  "-",
+		Info:          "",
+		PhotoURL:      event.OwnerPhoto,
+		Sum:           reg.AmountToPay(),
+		Owner:         "John Doe",
+		Text:          event.OwnerPhone + " " + event.OwnerEmail,
+		Days:          []string{event.Days[0].Description},
+		RegInfo:       *event.Info,
+		Payment: templates.PaymentDetails{
+			IBAN:             event.IBAN,
+			PaymentReference: event.PaymentReference,
+			SpecificSymbol:   reg.SpecificSymbol,
+			Link:             s.expectedPayMeLink(reg.AmountToPay(), event.IBAN, reg.Name, reg.Surname, event, reg.SpecificSymbol),
+			QRCode:           "",
+		},
+	}).Return(nil)
+
+	u := fmt.Sprintf("/api/registrations/%d/resend_confirmation", reg.ID)
+	req, rec := s.NewRequest(http.MethodPost, u, echo.Map{"email": newEmail})
+	s.AuthorizeRequest(req, &auth.Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject: "admin@sbb.sk",
+		},
+	})
+	s.AssertServerResponseObject(req, rec, http.StatusAccepted, nil)
+	s.mailer.AssertExpectations(s.T())
+
+	updatedRegistration, err := repository.FindRegistrationByID(context.Background(), s.dbx, reg.ID)
+	s.Require().NoError(err)
+	s.Require().Equal(newEmail, updatedRegistration.Email)
+}
+
+func (s *RegistrationSuite) TestSendPaymentReminder_Unauthorized() {
+	req, rec := s.NewRequest(http.MethodPost, "/api/send_payment_reminder", nil)
+	s.AssertServerResponseObject(req, rec, http.StatusUnauthorized, nil)
+}
+
+func (s *RegistrationSuite) TestSendPaymentReminder_EventNotFound() {
+	req, rec := s.NewRequest(http.MethodPost, "/api/send_payment_reminder",
+		echo.Map{"event_id": 42})
+	s.AuthorizeRequest(req, &auth.Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject: "admin@sbb.sk",
+		},
+	})
+	s.AssertServerResponseObject(req, rec, http.StatusNotFound, nil)
+}
+
+func (s *RegistrationSuite) TestSendPaymentReminder_SkipPayed() {
+	event := s.InsertEvent()
+	_ = s.createRegistration(event.Days[0].ID, func(registration *model.Registration) {
+		registration.Payed = s.intRef(registration.AmountToPay())
+	})
+
+	req, rec := s.NewRequest(http.MethodPost, "/api/send_payment_reminder", echo.Map{"event_id": event.ID})
+	s.AuthorizeRequest(req, &auth.Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject: "admin@sbb.sk",
+		},
+	})
+	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
+		s.Equal(echo.Map{"sent": float64(0), "finished_all": true}, body)
+	})
+	s.mailer.AssertExpectations(s.T())
+}
+
+func (s *RegistrationSuite) TestSendPaymentReminder_Success() {
+	event := s.InsertEvent()
+	reg := s.createRegistration(event.Days[0].ID)
+
+	s.mailer.On("PaymentReminderMail", mock.Anything, &templates.PaymentReminderReq{
+		Mail:          reg.Email,
+		ParentName:    reg.ParentName,
+		ParentSurname: reg.ParentSurname,
+		EventName:     event.Title,
+		Name:          reg.Name,
+		Surname:       reg.Surname,
+		Sum:           reg.AmountToPay(),
+		Payment: templates.PaymentDetails{
+			IBAN:             event.IBAN,
+			PaymentReference: event.PaymentReference,
+			SpecificSymbol:   reg.SpecificSymbol,
+			Link:             s.expectedPayMeLink(reg.AmountToPay(), event.IBAN, reg.Name, reg.Surname, event, reg.SpecificSymbol),
+			QRCode:           "",
+		},
+	}).Return(nil)
+
+	req, rec := s.NewRequest(http.MethodPost, "/api/send_payment_reminder", echo.Map{"event_id": event.ID})
+	s.AuthorizeRequest(req, &auth.Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject: "admin@sbb.sk",
+		},
+	})
+	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
+		s.Equal(echo.Map{"sent": float64(1), "finished_all": true}, body)
+	})
+	s.mailer.AssertExpectations(s.T())
 }
 
 func TestRegistrationSuite(t *testing.T) {

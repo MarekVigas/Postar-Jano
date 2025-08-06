@@ -94,7 +94,9 @@ func New(
 	api.GET("/registrations/:id", a.FindRegistrationByID, requireAuth)
 	api.DELETE("/registrations/:id", a.DeleteRegistrationByID, requireAuth)
 	api.PUT("/registrations/:id", a.UpdateRegistration, requireAuth)
+	api.POST("/registrations/:id/resend_confirmation", a.ResendConfirmation, requireAuth)
 	api.POST("/send_payment_notifications", a.SendPaymentNotification, requireAuth)
+	api.POST("/send_payment_reminder", a.SendPaymentReminder, requireAuth)
 
 	return a
 }
