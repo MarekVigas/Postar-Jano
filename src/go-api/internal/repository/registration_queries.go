@@ -25,7 +25,7 @@ func ListRegistrations(ctx context.Context, db sqlx.QueryerContext) ([]model.Ext
 }
 
 func ListEventRegistrations(ctx context.Context, db sqlx.QueryerContext, eventID int) ([]model.ExtendedRegistration, error) {
-	return listRegistrations(ctx, db, "e.event_id=$1 AND deleted_at IS NULL", eventID)
+	return listRegistrations(ctx, db, "e.id=$1 AND r.deleted_at IS NULL", eventID)
 }
 
 func ListRegistrationsWithoutNotification(ctx context.Context, db sqlx.QueryerContext) ([]model.ExtendedRegistration, error) {
@@ -60,6 +60,21 @@ func UpdateRegistration(ctx context.Context, tx *sqlx.Tx, reg *model.Registratio
 	var updated int
 	if err := stmt.GetContext(ctx, &updated, reg); err != nil {
 		return errors.Wrap(err, "failed to update a registration")
+	}
+	return nil
+}
+
+func UpdateRegistrationEmail(ctx context.Context, tx *sqlx.Tx, regID int, email string) error {
+	var updatedID int
+	err := sqlx.GetContext(ctx, tx, &updatedID, `
+		UPDATE registrations SET 
+			email = $1,
+			updated_at = NOW()
+		WHERE id = $2
+		RETURNING id
+	`, email, regID)
+	if err != nil {
+		return errors.Wrap(err, "failed to update registration email")
 	}
 	return nil
 }
@@ -161,6 +176,7 @@ func CreateRegistration(ctx context.Context, db sqlx.QueryerContext, r model.Reg
 				surname,
 				gender,
 				amount,
+			    payed,
 				token,
 				date_of_birth,
 				finished_school,
@@ -198,10 +214,11 @@ func CreateRegistration(ctx context.Context, db sqlx.QueryerContext, r model.Reg
 				$17,
 				$18,
 			    $19,
+			    $20,
 				NOW(),
 				NOW()
 			) RETURNING *
-		`, r.Name, r.Surname, r.Gender, r.Amount, r.Token,
+		`, r.Name, r.Surname, r.Gender, r.Amount, r.Payed, r.Token,
 		r.DateOfBirth, r.FinishedSchool, r.AttendedPrevious, r.City,
 		r.Pills, r.Notes, r.ParentName, r.ParentSurname, r.Email,
 		r.Phone, r.AttendedActivities, r.Problems, r.PromoCode, r.Discount)
