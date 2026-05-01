@@ -8,8 +8,8 @@ interface Props {
 const CopyButton :React.FC<Props> = ({selector}) => {
     const popover = (
         <Popover id="popover-basic">
-            <Popover.Title as="h3">Skopirovane!</Popover.Title>
-            <Popover.Content>Pouzi ctrl+v</Popover.Content>
+            <Popover.Header as="h3">Skopirovane!</Popover.Header>
+            <Popover.Body>Pouzi ctrl+v</Popover.Body>
         </Popover>
     );
 
