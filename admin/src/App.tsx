@@ -1,13 +1,13 @@
 import React, {useEffect} from 'react';
 import './App.css';
-import {BrowserRouter, Route, Switch, Link} from 'react-router-dom';
+import {BrowserRouter, Route, Routes, Link} from 'react-router-dom';
 import EventList from "./components/EventList";
 import RegistrationList from "./components/RegistrationList";
 import Login from "./components/Login";
 import {useAppDispatch, useAppState} from "./AppContext";
 import {Navbar, Nav} from "react-bootstrap";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import jwtDecode, {JwtPayload} from "jwt-decode";
+import { jwtDecode, JwtPayload } from "jwt-decode";
 
 
 const App: React.FC = () => {
@@ -58,18 +58,11 @@ const App: React.FC = () => {
                        </Nav.Link>
                    </Nav>
                </Navbar>
-             <Switch>
-                <Route path="/events">
-                  <EventList/>
-                </Route>
-                 <Route path="/registrations/:event">
-                     <RegistrationList/>
-                 </Route>
-                <Route path="/registrations">
-                  <RegistrationList/>
-                </Route>
-
-             </Switch>
+             <Routes>
+                <Route path="/events" element={<EventList/>} />
+                <Route path="/registrations/:event" element={<RegistrationList/>} />
+                <Route path="/registrations" element={<RegistrationList/>} />
+             </Routes>
            </BrowserRouter>
          </div>
     );

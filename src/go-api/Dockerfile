@@ -1,4 +1,4 @@
-FROM golang:1.24.2 AS devImage
+FROM golang:1.25.9 AS devImage
 
 ADD https://github.com/chrisaxiom/docker-health-check/blob/master/docker-health-check?raw=true /docker-health-check
 RUN chmod a+x /docker-health-check
@@ -6,11 +6,12 @@ RUN chmod a+x /docker-health-check
 ENV CGO_ENABLED 0
 ENV GOPATH ""
 
+RUN mkdir /app
 WORKDIR /src
 COPY . go.sum /src/
 RUN go mod download
 COPY . .
-RUN make build
+RUN make build && cp registrations_api /app/registrations_api
 CMD ["tail", "-f", "/dev/null"]
 
 FROM scratch AS image-prod

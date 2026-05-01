@@ -47,7 +47,7 @@ const RegistrationList:React.FC = () :JSX.Element => {
     const [showEdit, setShowEdit] = useState(false)
     const [editedRegistration, setEditedRegistration] = useState<IExtendedRegistration|null>(null)
     const apiClient = useAPIClient()
-    const {event} = useParams<{event:string}>()
+    const {event} = useParams<{event?: string}>()
 
     useEffect(
         () => {

@@ -1,4 +1,3 @@
-import axios from "axios";
 import ApiClient from "./apiClient";
 
 export interface IExtendedRegistration {
@@ -59,18 +58,4 @@ export class Registrations {
     public delete(id :number) :Promise<IRegistration> {
         return this.client.delete<IRegistration>(`/api/registrations/${id}`)
     }
-}
-
-export const updateRegistration = (apiHost :string, token:string|null, reg :IExtendedRegistration) :Promise<number> => {
-    return new Promise<number>((resolve, reject) => {
-        axios.put(
-            `${apiHost}/api/registrations/${reg.id}`,
-            reg,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                }
-            }
-        ).then(() => resolve(reg.id)).catch(err => reject(err))
-    })
 }

@@ -9,7 +9,8 @@ dc-down:
 	docker compose down
 
 rebuild-api: dc-up
-	docker compose exec -i -t api make build
+	docker compose exec api sh -c "make build && cp registrations_api /app/registrations_api"
+	docker compose restart api
 
 run-api: dc-up
 	docker compose exec -i -t api make run

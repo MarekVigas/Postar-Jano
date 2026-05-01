@@ -1,6 +1,5 @@
 import React, { useContext, useReducer} from "react";
 import ApiClient from "./api/apiClient";
-import axios from "axios";
 import {getToken, setToken} from "./api/token";
 
 interface AppData {
@@ -55,7 +54,7 @@ function initState() :AppState {
 
 function AppProvider({host, children} :AppProps) {
     const apiHost = host || defaultApiHost
-    const apiClient = new ApiClient(axios.create(), apiHost)
+    const apiClient = new ApiClient(apiHost)
     const [state, dispatch] = useReducer(appReduce, initState())
 
     return (

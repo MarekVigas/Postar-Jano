@@ -1,82 +1,68 @@
-import {AxiosInstance, AxiosRequestConfig} from 'axios'
-import {Registrations} from "./registrations";
-import {Events} from "./events";
-import {User} from "./login";
 import {getToken} from "./token";
-
+import {Events} from "./events";
+import {Registrations} from "./registrations";
+import {User} from "./login";
 
 class ApiClient {
-    private readonly baseURL :string;
-    private readonly axios :AxiosInstance;
+    private readonly baseURL: string;
 
-    public events :Events;
-    public registrations :Registrations;
-    public user :User;
+    public events: Events;
+    public registrations: Registrations;
+    public user: User;
 
-    constructor(axios: AxiosInstance, baseURL :string) {
-        this.axios = axios
-        this.baseURL = baseURL
-        this.events = new Events(this)
-        this.registrations = new Registrations(this)
-        this.user = new User(this)
+    constructor(baseURL: string) {
+        this.baseURL = baseURL;
+        this.events = new Events(this);
+        this.registrations = new Registrations(this);
+        this.user = new User(this);
     }
 
-    makeUrl(path: string) {
+    makeUrl(path: string): string {
         return this.baseURL + path;
     }
 
-    authHeader():AxiosRequestConfig {
-        const token = getToken()
-        if (!token)  return {}
-        return {headers: {Authorization: 'Bearer ' + token}};
+    private authHeader(): Record<string, string> {
+        const token = getToken();
+        if (!token) return {};
+        return {Authorization: "Bearer " + token};
     }
 
-    get<T = any>(relativeUrl: string): Promise<T> {
-        const url = this.makeUrl(relativeUrl);
-        const config = this.authHeader();
+    private async request<T>(method: string, relativeUrl: string, body?: unknown): Promise<T> {
+        const headers: Record<string, string> = {
+            ...this.authHeader(),
+            ...(body !== undefined ? {"Content-Type": "application/json"} : {}),
+        };
 
-        return this.axios.get<T>(url, config)
-            .then(res => res.data)
-            .catch(err => {
-                console.log(err);
-                throw err;
-            });
+        const res = await fetch(this.makeUrl(relativeUrl), {
+            method,
+            headers,
+            body: body !== undefined ? JSON.stringify(body) : undefined,
+        });
+
+        if (!res.ok) {
+            const err = new Error(`HTTP ${res.status}: ${res.statusText}`);
+            console.log(err);
+            throw err;
+        }
+
+        const text = await res.text();
+        return (text ? JSON.parse(text) : undefined) as T;
     }
 
-    post<T = any>(relativeUrl: string, data: any): Promise<T> {
-        const url = this.makeUrl(relativeUrl);
-        const config = this.authHeader();
-
-        return this.axios.post<T>(url,data, config)
-            .then(res => res.data)
-            .catch(err => {
-                console.log(err);
-                throw err;
-            });
+    get<T = unknown>(relativeUrl: string): Promise<T> {
+        return this.request<T>("GET", relativeUrl);
     }
 
-    put<T = any>(relativeUrl: string, data: any): Promise<T> {
-        const url = this.makeUrl(relativeUrl);
-        const config = this.authHeader();
-
-        return this.axios.put<T>(url,data, config)
-            .then(res => res.data)
-            .catch(err => {
-                console.log(err);
-                throw err;
-            });
+    post<T = unknown>(relativeUrl: string, data: unknown): Promise<T> {
+        return this.request<T>("POST", relativeUrl, data);
     }
 
-    delete<T = any>(relativeUrl: string): Promise<T> {
-        const url = this.makeUrl(relativeUrl);
-        const config = this.authHeader();
+    put<T = unknown>(relativeUrl: string, data: unknown): Promise<T> {
+        return this.request<T>("PUT", relativeUrl, data);
+    }
 
-        return this.axios.delete<T>(url, config)
-            .then(res => res.data)
-            .catch(err => {
-                console.log(err);
-                throw err;
-            });
+    delete<T = unknown>(relativeUrl: string): Promise<T> {
+        return this.request<T>("DELETE", relativeUrl);
     }
 }
 

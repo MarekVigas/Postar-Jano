@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/MarekVigas/Postar-Jano/internal/model"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -9,6 +10,9 @@ func (api *API) ListEvents(c echo.Context) error {
 	events, err := api.eventManager.GetAll(c.Request().Context())
 	if err != nil {
 		return api.handleError(err)
+	}
+	if events == nil {
+		events = make([]model.Event, 0)
 	}
 	return c.JSON(http.StatusOK, events)
 }
