@@ -16,8 +16,10 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -55,11 +57,19 @@ func New(
 	}
 
 	requireAuth := authenticator.Middleware()
+	registry := prometheus.NewRegistry()
 	e.Use(
 		middleware.CORS(),
 		middleware.RequestID(),
 		logger.ContextLogger(log),
+		echoprometheus.NewMiddlewareWithConfig(echoprometheus.MiddlewareConfig{
+			Subsystem:  "postar_jano",
+			Registerer: registry,
+		}),
 	)
+	e.GET("/metrics", echoprometheus.NewHandlerWithConfig(echoprometheus.HandlerConfig{
+		Gatherer: registry,
+	}))
 	api := e.Group("/api",
 		middleware.Recover(),
 		middleware.LoggerWithConfig(middleware.LoggerConfig{
