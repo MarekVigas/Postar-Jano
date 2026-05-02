@@ -19,6 +19,7 @@ type Event struct {
 	IBAN              string  `json:"iban" db:"iban"`
 	PromoDiscount     int     `json:"promo_discount" db:"promo_discount"`
 	PaymentReference  string  `json:"payment_reference" db:"payment_reference"`
+	CreditorName      string  `json:"creditor_name" db:"creditor_name"`
 	// Refactor embeded struct
 	EventOwner `json:"owner"`
 	Days       []Day `json:"days"`

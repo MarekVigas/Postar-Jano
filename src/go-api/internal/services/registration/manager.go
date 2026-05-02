@@ -483,6 +483,7 @@ func (m *Manager) sendConfirmationMail(ctx context.Context, registration *model.
 func (m *Manager) registrationToPaymentDetails(reg *model.Registration, event *model.Event) (templates.PaymentDetails, error) {
 	link, err := payme.NewBuilder().
 		IBAN(event.IBAN).
+		CreditorName(event.CreditorName).
 		Amount(reg.AmountToPay()).
 		PaymentReference(event.PaymentReference).
 		SpecificSymbol(reg.SpecificSymbol).

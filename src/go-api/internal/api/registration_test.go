@@ -367,7 +367,7 @@ func (s *RegistrationSuite) expectedPayMeLink(
 	v.Set("AM", strconv.Itoa(amount))
 	v.Set("CC", "EUR")
 	v.Set("V", "1")
-	v.Set("CN", "salezko")
+	v.Set("CN", event.CreditorName)
 	v.Set("IBAN", iban)
 	v.Set("PI", fmt.Sprintf("/VS%s/SS%s/KS%s", event.PaymentReference, specificSymbol, ""))
 	v.Set("MSG", fmt.Sprintf("%s %s %s", event.Title, name, surname))
