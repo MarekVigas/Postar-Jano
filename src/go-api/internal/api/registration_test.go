@@ -175,6 +175,7 @@ func (s *RegistrationSuite) testRegister_NotActive_Promo() {
 		RegInfo:       *event.Info,
 		Payment: templates.PaymentDetails{
 			IBAN:             event.IBAN,
+			CreditorName:     event.CreditorName,
 			PaymentReference: event.PaymentReference,
 			SpecificSymbol:   s.expectedNextSpecificSymbol(),
 			Link:             s.expectedPayMeLink(day.Price-event.PromoDiscount, event.IBAN, name, surname, event, s.expectedNextSpecificSymbol()),
@@ -302,6 +303,7 @@ func (s *RegistrationSuite) TestRegister_OK() {
 		RegInfo:       *event.Info,
 		Payment: templates.PaymentDetails{
 			IBAN:             event.IBAN,
+			CreditorName:     event.CreditorName,
 			PaymentReference: event.PaymentReference,
 			SpecificSymbol:   s.expectedNextSpecificSymbol(),
 			Link:             s.expectedPayMeLink(day.Price, event.IBAN, name, surname, event, s.expectedNextSpecificSymbol()),
@@ -427,6 +429,7 @@ func (s *RegistrationSuite) TestResendConfirmationEmail_Success() {
 		RegInfo:       *event.Info,
 		Payment: templates.PaymentDetails{
 			IBAN:             event.IBAN,
+			CreditorName:     event.CreditorName,
 			PaymentReference: event.PaymentReference,
 			SpecificSymbol:   reg.SpecificSymbol,
 			Link:             s.expectedPayMeLink(reg.AmountToPay(), event.IBAN, reg.Name, reg.Surname, event, reg.SpecificSymbol),
@@ -497,6 +500,7 @@ func (s *RegistrationSuite) TestSendPaymentReminder_Success() {
 		Sum:           reg.AmountToPay(),
 		Payment: templates.PaymentDetails{
 			IBAN:             event.IBAN,
+			CreditorName:     event.CreditorName,
 			PaymentReference: event.PaymentReference,
 			SpecificSymbol:   reg.SpecificSymbol,
 			Link:             s.expectedPayMeLink(reg.AmountToPay(), event.IBAN, reg.Name, reg.Surname, event, reg.SpecificSymbol),
