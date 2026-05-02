@@ -21,6 +21,7 @@ type ConfirmationReq struct {
 
 type PaymentDetails struct {
 	IBAN             string
+	CreditorName     string
 	PaymentReference string
 	SpecificSymbol   string
 	Link             string

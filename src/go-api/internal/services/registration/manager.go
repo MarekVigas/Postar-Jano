@@ -495,6 +495,7 @@ func (m *Manager) registrationToPaymentDetails(reg *model.Registration, event *m
 
 	details := templates.PaymentDetails{
 		IBAN:             event.IBAN,
+		CreditorName:     event.CreditorName,
 		PaymentReference: event.PaymentReference,
 		SpecificSymbol:   reg.SpecificSymbol,
 		Link:             link,
