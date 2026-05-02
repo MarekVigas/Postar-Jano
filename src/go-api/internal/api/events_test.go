@@ -74,6 +74,7 @@ func (s *EventsSuite) eventToResource(event *model.Event) echo.Map {
 		"iban":              event.IBAN,
 		"promo_discount":    float64(event.PromoDiscount),
 		"payment_reference": event.PaymentReference,
+		"creditor_name":     event.CreditorName,
 	}
 	if event.Time != nil {
 		res["time"] = *event.Time

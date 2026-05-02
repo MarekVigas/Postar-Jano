@@ -10,6 +10,7 @@ import (
 
 type Builder struct {
 	iban             string
+	creditorName     string
 	amount           int
 	paymentReference string
 	specificSymbol   string
@@ -32,6 +33,11 @@ func NewBuilder() *Builder {
 
 func (b *Builder) IBAN(val string) *Builder {
 	b.iban = val
+	return b
+}
+
+func (b *Builder) CreditorName(val string) *Builder {
+	b.creditorName = val
 	return b
 }
 
@@ -62,7 +68,7 @@ func (b *Builder) Build() (string, error) {
 	v.Set(amountKey, strconv.Itoa(b.amount))
 	v.Set(currencyCodeKey, "EUR")
 	v.Set(paymentIdentificationKey, fmt.Sprintf("/VS%s/SS%s/KS%s", b.paymentReference, b.specificSymbol, ""))
-	v.Set(creditorsKey, "salezko")
+	v.Set(creditorsKey, b.creditorName)
 	if b.note != "" {
 		v.Set(messageKey, regexp.MustCompile(`[^\p{L}\p{N} ]+`).ReplaceAllString(b.note, ""))
 	}
