@@ -17,8 +17,8 @@ const Login: React.FC = () => {
                 dispatch({type:"SET_TOKEN", token: data.token})
             }
         ).catch(
-            (err) => {
-                if (err.response !== undefined && err.response.status === 403) {
+            (err: Error) => {
+                if (err.message.startsWith("HTTP 403")) {
                     setErrs("Nespravne meno alebo heslo.")
                 } else {
                     setErrs("Chyba prihlasenia, skuste to neskor.")
