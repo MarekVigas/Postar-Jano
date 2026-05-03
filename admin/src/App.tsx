@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import './App.css';
-import {BrowserRouter, Route, Routes, Link} from 'react-router-dom';
+import {BrowserRouter, Route, Routes, Link, Navigate} from 'react-router-dom';
 import EventList from "./components/EventList";
 import RegistrationList from "./components/RegistrationList";
 import Login from "./components/Login";
@@ -62,6 +62,7 @@ const App: React.FC = () => {
                 <Route path="/events" element={<EventList/>} />
                 <Route path="/registrations/:event" element={<RegistrationList/>} />
                 <Route path="/registrations" element={<RegistrationList/>} />
+                <Route path="*" element={<Navigate to="/events" replace />} />
              </Routes>
            </BrowserRouter>
          </div>
