@@ -249,6 +249,54 @@ func (s *RegistrationSuite) TestRegister_NotActive_Promo_Simple() {
 	s.testRegister_NotActive_Promo()
 }
 
+func (s *RegistrationSuite) TestRegister_Active_InvalidPromoCode() {
+	const (
+		name     = "dano"
+		surname  = "zharmanca"
+		pname    = "janko"
+		psurname = "hrasko"
+		gender   = "male"
+		city     = "BB"
+		phone    = "+421"
+		email    = "dano@mail.sk"
+		school   = "3.ZS"
+	)
+	event := s.InsertEvent()
+	day := event.Days[0]
+	birth := time.Now().Format(time.RFC3339)
+
+	s.mailer.On("ConfirmationMail", mock.Anything, mock.Anything).Return(nil)
+
+	u := fmt.Sprintf("/api/registrations/%d", event.ID)
+	req, rec := s.NewRequest(http.MethodPost, u, echo.Map{
+		"child": echo.Map{
+			"name":               name,
+			"surname":            surname,
+			"gender":             gender,
+			"city":               city,
+			"finishedSchoolYear": school,
+			"dateOfBirth":        birth,
+		},
+		"parent": echo.Map{
+			"name":    pname,
+			"surname": psurname,
+			"email":   email,
+			"phone":   phone,
+		},
+		"days":       []interface{}{day.ID},
+		"promo_code": "invalid-promo-code-that-does-not-exist",
+	})
+
+	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
+		s.NotEmpty(body["token"])
+		delete(body, "token")
+		s.Equal(echo.Map{
+			"registeredIDs": []interface{}{float64(day.ID)},
+			"success":       true,
+		}, body)
+	})
+}
+
 func (s *RegistrationSuite) TestRegister_OK() {
 	const (
 		name     = "dano"

@@ -264,7 +264,11 @@ func (m *Manager) CreateNew(ctx context.Context, req *resources.RegisterReq, eve
 
 		promoKey, err := m.validatePromoCode(ctx, tx, req.PromoCode)
 		if err != nil {
-			return err
+			// For publicly open events, promo codes are optional — ignore validation errors
+			if !event.Active {
+				return err
+			}
+			promoKey = ""
 		}
 
 		if registeredDayIDs, err = m.validateEventCapacity(ctx, tx, err, eventID, req); err != nil {
