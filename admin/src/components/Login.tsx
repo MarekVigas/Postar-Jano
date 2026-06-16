@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {Button, Alert, Form} from "react-bootstrap";
+import {useNavigate} from "react-router-dom";
 import {useAPIClient, useAppDispatch} from "../AppContext";
 
 const Login: React.FC = () => {
@@ -9,12 +10,14 @@ const Login: React.FC = () => {
     const [errs, setErrs] = useState<string>()
     const apiClient = useAPIClient()
     const dispatch = useAppDispatch()
+    const navigate = useNavigate()
 
     const handleSubmit = (e :React.FormEvent) => {
         e.preventDefault();
         apiClient.user.signIn(username, password).then(
             (data) => {
                 dispatch({type:"SET_TOKEN", token: data.token})
+                navigate('/events')
             }
         ).catch(
             (err: Error) => {
