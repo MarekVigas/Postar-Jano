@@ -58,4 +58,8 @@ export class Registrations {
     public delete(id :number) :Promise<IRegistration> {
         return this.client.delete<IRegistration>(`/api/registrations/${id}`)
     }
+
+    public resendConfirmation(id :number, email :string) :Promise<void> {
+        return this.client.post(`/api/registrations/${id}/resend_confirmation`, { email })
+    }
 }
