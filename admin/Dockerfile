@@ -5,6 +5,9 @@ WORKDIR /app
 ARG REACT_APP_API_HOST
 ENV REACT_APP_API_HOST=$REACT_APP_API_HOST
 
+ARG PUBLIC_URL=/
+ENV PUBLIC_URL=$PUBLIC_URL
+
 # add `/app/node_modules/.bin` to $PATH
 ENV PATH /app/node_modules/.bin:$PATH
 

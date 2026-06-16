@@ -10,7 +10,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { jwtDecode, JwtPayload } from "jwt-decode";
 
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
     const state = useAppState()
     const dispatch = useAppDispatch()
 
@@ -34,10 +34,8 @@ const App: React.FC = () => {
         return <Login/>
     }
 
-
     return (
          <div className="wrapper">
-           <BrowserRouter basename="/admin">
                <Navbar bg="light">
                    <Navbar.Brand>Leto 2024</Navbar.Brand>
                    <Nav style={{display:'flex', width:'100%'}}>
@@ -64,8 +62,15 @@ const App: React.FC = () => {
                 <Route path="/registrations" element={<RegistrationList/>} />
                 <Route path="*" element={<Navigate to="/events" replace />} />
              </Routes>
-           </BrowserRouter>
          </div>
+    );
+}
+
+const App: React.FC = () => {
+    return (
+        <BrowserRouter basename="/admin">
+            <AppContent/>
+        </BrowserRouter>
     );
 }
 
