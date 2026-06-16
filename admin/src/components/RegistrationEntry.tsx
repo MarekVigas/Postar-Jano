@@ -7,9 +7,10 @@ interface Props {
     fields : IViewFields;
     deleteRegByID :(id:number)=>void;
     editRegByID :()=>void;
+    resendRegByID :()=>void;
 }
 
-const RegistrationEntry :React.FC<Props> = ({fields, registration, deleteRegByID, editRegByID}) => {
+const RegistrationEntry :React.FC<Props> = ({fields, registration, deleteRegByID, editRegByID, resendRegByID}) => {
     const {
         id,
         name,
@@ -90,6 +91,9 @@ const RegistrationEntry :React.FC<Props> = ({fields, registration, deleteRegByID
             <button onClick={() => {
                 editRegByID()
             }}>Upravit</button>
+            {isShown("resend") && <button onClick={() => {
+                resendRegByID()
+            }}>Preposli potvrdzovaci email</button>}
             <button onClick={(e) => {
                 if (window.confirm(`Naozaj chcete vymazat registraciu ${name} ${surname} (ID ${id})?`)) {
                     console.log("Deleting ", id)

@@ -6,6 +6,7 @@ import {useParams} from 'react-router-dom'
 import {useAPIClient} from "../AppContext";
 import useStorage from "../hooks/useStorage";
 import EditForm from "./EditForm";
+import ResendConfirmationModal from "./ResendConfirmationModal";
 import {Table} from 'react-bootstrap'
 import CopyButton from "./CopyButton";
 
@@ -42,10 +43,13 @@ const RegistrationList:React.FC = () :JSX.Element => {
         "days": { display: "Dni", show: true},
 
         "buttons": {display: "Upravy", show:true},
+        "resend": {display: "Preposli potvrdzovaci email", show: false},
     })
     const [expandViewFilter, setExpandViewFilter] = useState(false)
     const [showEdit, setShowEdit] = useState(false)
     const [editedRegistration, setEditedRegistration] = useState<IExtendedRegistration|null>(null)
+    const [showResend, setShowResend] = useState(false)
+    const [resendRegistration, setResendRegistration] = useState<IExtendedRegistration|null>(null)
     const apiClient = useAPIClient()
     const {event} = useParams<{event?: string}>()
 
@@ -115,6 +119,14 @@ const RegistrationList:React.FC = () :JSX.Element => {
         )
     }
 
+    const handleResendConfirmation = (email: string) => {
+        if (resendRegistration === null) return
+        apiClient.registrations.resendConfirmation(resendRegistration.id, email).then(() => {
+            setShowResend(false)
+            window.alert(`Potvrdzovací email bol úspešne odoslaný na ${email}.`)
+        })
+    }
+
     const handleEdit = (mutator:(prev :IExtendedRegistration) => IExtendedRegistration) => {
         setEditedRegistration((p :IExtendedRegistration|null) => {
             if (p == null) return p
@@ -140,6 +152,12 @@ const RegistrationList:React.FC = () :JSX.Element => {
                 placeholder='filter...'
                 onChange={event => setFilter(event.target.value)}
             />
+            {resendRegistration != null && <ResendConfirmationModal
+                show={showResend}
+                reg={{...resendRegistration}}
+                handleSubmit={handleResendConfirmation}
+                handleClose={() => setShowResend(false)}
+            />}
             {editedRegistration!= null && <EditForm
                 show={showEdit}
                 reg={{...editedRegistration}}
@@ -196,6 +214,10 @@ const RegistrationList:React.FC = () :JSX.Element => {
                             editRegByID={() => {
                                 setEditedRegistration({...r})
                                 setShowEdit(true)
+                            }}
+                            resendRegByID={() => {
+                                setResendRegistration({...r})
+                                setShowResend(true)
                             }}
                         />
                 )}
