@@ -1,13 +1,21 @@
 import ApiClient from "./apiClient";
 
-export interface ISignInResponse {
-    token :string;
+export interface IMeResponse {
+    email: string;
 }
 
 export class User {
     constructor(protected client: ApiClient) {}
 
-    public signIn( username: string, password :string) :Promise<ISignInResponse>{
-        return this.client.post<ISignInResponse>("/api/sign/in", {username, password})
+    public signIn(username: string, password: string): Promise<void> {
+        return this.client.post<void>("/api/sign/in", {username, password})
+    }
+
+    public signOut(): Promise<void> {
+        return this.client.post<void>("/api/sign/out", {})
+    }
+
+    public me(): Promise<IMeResponse | null> {
+        return this.client.get<IMeResponse>("/api/me").catch(() => null)
     }
 }

@@ -15,8 +15,8 @@ const Login: React.FC = () => {
     const handleSubmit = (e :React.FormEvent) => {
         e.preventDefault();
         apiClient.user.signIn(username, password).then(
-            (data) => {
-                dispatch({type:"SET_TOKEN", token: data.token})
+            () => {
+                dispatch({type: "SIGN_IN"})
                 navigate('/events')
             }
         ).catch(

@@ -66,16 +66,23 @@ func (s *AuthSuite) TestSignIn_OK() {
 		"username": userName,
 		"password": pass,
 	})
-	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
-		s.NotEmpty(body["token"])
-		var claims auth.Claims
-		token, err := jwt.ParseWithClaims(body["token"].(string), &claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte(jwtSecret), nil
-		})
-		s.NoError(err)
-		s.NotNil(token)
-		s.Equal(claims.Subject, user.Email)
+	s.AssertServerResponseObject(req, rec, http.StatusNoContent, nil)
+
+	var authCookie *http.Cookie
+	for _, c := range rec.Result().Cookies() {
+		if c.Name == "auth_token" {
+			authCookie = c
+		}
+	}
+	s.Require().NotNil(authCookie, "auth_token cookie not set")
+	s.True(authCookie.HttpOnly)
+
+	var claims auth.Claims
+	_, err := jwt.ParseWithClaims(authCookie.Value, &claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(jwtSecret), nil
 	})
+	s.NoError(err)
+	s.Equal(user.Email, claims.Subject)
 }
 
 func (s *AuthSuite) addOwner(username string, pass string) *model.Owner {
@@ -114,6 +121,23 @@ func (s *AuthSuite) addOwner(username string, pass string) *model.Owner {
 		)`, &owner)
 	s.NoError(err)
 	return &owner
+}
+
+func (s *AuthSuite) TestMe_Unauthorized() {
+	req, rec := s.NewRequest(http.MethodGet, "/api/me", nil)
+	s.AssertServerResponseObject(req, rec, http.StatusUnauthorized, nil)
+}
+
+func (s *AuthSuite) TestMe_OK() {
+	req, rec := s.NewRequest(http.MethodGet, "/api/me", nil)
+	s.AuthorizeRequest(req, &auth.Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject: "admin@example.com",
+		},
+	})
+	s.AssertServerResponseObject(req, rec, http.StatusOK, func(body echo.Map) {
+		s.Equal("admin@example.com", body["email"])
+	})
 }
 
 func (s *AuthSuite) TestListRegistrations_Unauthorized() {
@@ -370,7 +394,10 @@ func (s *CommonSuite) AuthorizeRequest(req *http.Request, claims *auth.Claims) {
 	ss, err := tok.SignedString([]byte(jwtSecret))
 	s.NoError(err)
 
-	req.Header.Set(echo.HeaderAuthorization, "Bearer "+ss)
+	req.AddCookie(&http.Cookie{
+		Name:  "auth_token",
+		Value: ss,
+	})
 }
 
 func TestAuthSuite(t *testing.T) {

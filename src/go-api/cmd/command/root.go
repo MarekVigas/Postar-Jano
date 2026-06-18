@@ -81,6 +81,9 @@ func runMain() error {
 		promoRegistry,
 		registration.NewManager(postgresDB, promoRegistry, mailerClient),
 		status.NewChecker(postgresDB),
+		c.AdminOrigin,
+		c.CookieDomain,
+		c.CookieSecure,
 	)
 
 	return service.WithTomb(logger, service.SetupHTTP(&c.Server, logger, handler))

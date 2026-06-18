@@ -9,6 +9,7 @@ import (
 	"github.com/MarekVigas/Postar-Jano/internal/services/registration"
 	"github.com/MarekVigas/Postar-Jano/internal/services/status"
 	"github.com/MarekVigas/Postar-Jano/pkg/logger"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 	"reflect"
@@ -36,6 +37,8 @@ type API struct {
 	promoRegistry       *promo.Registry
 	registrationManager *registration.Manager
 	checker             *status.Checker
+	cookieDomain        string
+	cookieSecure        bool
 }
 
 func New(
@@ -45,6 +48,9 @@ func New(
 	promoRegistry *promo.Registry,
 	registrationManager *registration.Manager,
 	checker *status.Checker,
+	adminOrigin string,
+	cookieDomain string,
+	cookieSecure bool,
 ) *API {
 	e := echo.New()
 	a := &API{
@@ -54,12 +60,19 @@ func New(
 		promoRegistry:       promoRegistry,
 		registrationManager: registrationManager,
 		checker:             checker,
+		cookieDomain:        cookieDomain,
+		cookieSecure:        cookieSecure,
 	}
 
 	requireAuth := authenticator.Middleware()
 	registry := prometheus.NewRegistry()
 	e.Use(
-		middleware.CORS(),
+		middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins:     []string{adminOrigin},
+			AllowCredentials: true,
+			AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
+			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		}),
 		middleware.RequestID(),
 		logger.ContextLogger(log),
 		echoprometheus.NewMiddlewareWithConfig(echoprometheus.MiddlewareConfig{
@@ -99,6 +112,8 @@ func New(
 
 	// Admin
 	api.POST("/sign/in", a.SignIn)
+	api.POST("/sign/out", a.SignOut)
+	api.GET("/me", a.Me, requireAuth)
 	api.POST("/promo_codes", a.GeneratePromoCode, requireAuth)
 	api.GET("/registrations", a.ListRegistrations, requireAuth)
 	api.GET("/registrations/:id", a.FindRegistrationByID, requireAuth)
@@ -135,9 +150,47 @@ func (api *API) SignIn(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{
-		"token": token,
-	})
+	cookie := &http.Cookie{
+		Name:     "auth_token",
+		Value:    token,
+		HttpOnly: true,
+		Secure:   api.cookieSecure,
+		SameSite: http.SameSiteStrictMode,
+		Path:     "/",
+		MaxAge:   3 * 60 * 60,
+	}
+	if api.cookieDomain != "" {
+		cookie.Domain = api.cookieDomain
+	}
+	c.SetCookie(cookie)
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (api *API) SignOut(c echo.Context) error {
+	cookie := &http.Cookie{
+		Name:     "auth_token",
+		Value:    "",
+		HttpOnly: true,
+		Secure:   api.cookieSecure,
+		SameSite: http.SameSiteStrictMode,
+		Path:     "/",
+		MaxAge:   -1,
+	}
+	if api.cookieDomain != "" {
+		cookie.Domain = api.cookieDomain
+	}
+	c.SetCookie(cookie)
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (api *API) Me(c echo.Context) error {
+	token := c.Get("user").(*jwt.Token)
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return echo.ErrUnauthorized
+	}
+	email, _ := claims["sub"].(string)
+	return c.JSON(http.StatusOK, echo.Map{"email": email})
 }
 
 func (api *API) handleError(err error) error {

@@ -4,65 +4,63 @@ import {BrowserRouter, Route, Routes, Link, Navigate} from 'react-router-dom';
 import EventList from "./components/EventList";
 import RegistrationList from "./components/RegistrationList";
 import Login from "./components/Login";
-import {useAppDispatch, useAppState} from "./AppContext";
+import {useAPIClient, useAppDispatch, useAppState} from "./AppContext";
 import {Navbar, Nav} from "react-bootstrap";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { jwtDecode, JwtPayload } from "jwt-decode";
 
 
 const AppContent: React.FC = () => {
     const state = useAppState()
     const dispatch = useAppDispatch()
+    const apiClient = useAPIClient()
 
-    useEffect(
-        ()=>{
-            if (!state.token) return
-            let decodedToken = jwtDecode<JwtPayload>(state.token);
+    useEffect(() => {
+        apiClient.user.me().then(result => {
+            dispatch({type: 'INIT_DONE', isAuthenticated: result !== null})
+        })
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-            if (!decodedToken) return
+    if (state.isLoading) {
+        return null
+    }
 
-            let currentDate = new Date();
-
-            // JWT exp is in seconds
-            if (decodedToken.exp && decodedToken.exp * 1000 < currentDate.getTime()) {
-                dispatch({type:"UNSET_TOKEN"})
-            }
-        }
-    ,[state.token, dispatch])
-
-    if(!state.token) {
+    if (!state.isAuthenticated) {
         return <Login/>
     }
 
+    const handleSignOut = () => {
+        apiClient.user.signOut().finally(() => {
+            dispatch({type: 'SIGN_OUT'})
+        })
+    }
+
     return (
-         <div className="wrapper">
-               <Navbar bg="light">
-                   <Navbar.Brand>Leto 2024</Navbar.Brand>
-                   <Nav style={{display:'flex', width:'100%'}}>
-                       <Nav.Link>
-                           <Link to="/events">
-                               Akcie
-                           </Link>
-                       </Nav.Link>
-                       <Nav.Link>
-                           <Link to="/registrations">
-                               Prihlaseni
-                           </Link>
-                       </Nav.Link>
-                       <Nav.Link style={{marginInlineStart:'auto'}}>
-                            <button
-                                onClick={() => dispatch({type:"UNSET_TOKEN"})}
-                            >Odhlasit sa</button>
-                       </Nav.Link>
-                   </Nav>
-               </Navbar>
-             <Routes>
-                <Route path="/events" element={<EventList/>} />
-                <Route path="/registrations/:event" element={<RegistrationList/>} />
-                <Route path="/registrations" element={<RegistrationList/>} />
-                <Route path="*" element={<Navigate to="/events" replace />} />
-             </Routes>
-         </div>
+        <div className="wrapper">
+            <Navbar bg="light">
+                <Navbar.Brand>Leto 2024</Navbar.Brand>
+                <Nav style={{display: 'flex', width: '100%'}}>
+                    <Nav.Link>
+                        <Link to="/events">
+                            Akcie
+                        </Link>
+                    </Nav.Link>
+                    <Nav.Link>
+                        <Link to="/registrations">
+                            Prihlaseni
+                        </Link>
+                    </Nav.Link>
+                    <Nav.Link style={{marginInlineStart: 'auto'}}>
+                        <button onClick={handleSignOut}>Odhlasit sa</button>
+                    </Nav.Link>
+                </Nav>
+            </Navbar>
+            <Routes>
+                <Route path="/events" element={<EventList/>}/>
+                <Route path="/registrations/:event" element={<RegistrationList/>}/>
+                <Route path="/registrations" element={<RegistrationList/>}/>
+                <Route path="*" element={<Navigate to="/events" replace/>}/>
+            </Routes>
+        </div>
     );
 }
 
