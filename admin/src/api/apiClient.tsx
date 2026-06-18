@@ -1,4 +1,3 @@
-import {getToken} from "./token";
 import {Events} from "./events";
 import {Registrations} from "./registrations";
 import {User} from "./login";
@@ -21,21 +20,15 @@ class ApiClient {
         return this.baseURL + path;
     }
 
-    private authHeader(): Record<string, string> {
-        const token = getToken();
-        if (!token) return {};
-        return {Authorization: "Bearer " + token};
-    }
-
     private async request<T>(method: string, relativeUrl: string, body?: unknown): Promise<T> {
         const headers: Record<string, string> = {
-            ...this.authHeader(),
             ...(body !== undefined ? {"Content-Type": "application/json"} : {}),
         };
 
         const res = await fetch(this.makeUrl(relativeUrl), {
             method,
             headers,
+            credentials: 'include',
             body: body !== undefined ? JSON.stringify(body) : undefined,
         });
 

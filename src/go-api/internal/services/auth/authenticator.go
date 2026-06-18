@@ -58,7 +58,8 @@ func (a *FromDB) Authenticate(ctx context.Context, username string, password str
 
 func (a *FromDB) Middleware() echo.MiddlewareFunc {
 	return echojwt.WithConfig(echojwt.Config{
-		SigningKey: a.jwtSecret,
+		SigningKey:   a.jwtSecret,
+		TokenLookup: "cookie:auth_token",
 		ErrorHandler: func(c echo.Context, err error) error {
 			return echo.ErrUnauthorized
 		},

@@ -179,6 +179,9 @@ func (s *CommonSuite) SetupTest() {
 		s.promoRegistry,
 		registration.NewManager(s.postgresDB, s.promoRegistry, s.mailer),
 		status.NewChecker(s.postgresDB),
+		"http://localhost",
+		"",
+		false,
 	)
 	s.NoError(repository.Reset(ctx, s.db))
 }
