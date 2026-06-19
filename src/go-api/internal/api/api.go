@@ -68,7 +68,7 @@ func New(
 	registry := prometheus.NewRegistry()
 	e.Use(
 		middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins:     []string{adminOrigin},
+			AllowOrigins:     []string{adminOrigin, "https://leto.salezko.sk"},
 			AllowCredentials: true,
 			AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
 			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
