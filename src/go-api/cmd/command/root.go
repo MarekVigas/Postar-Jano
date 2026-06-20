@@ -81,7 +81,7 @@ func runMain() error {
 		promoRegistry,
 		registration.NewManager(postgresDB, promoRegistry, mailerClient),
 		status.NewChecker(postgresDB),
-		c.AdminOrigin,
+		c.AllowedOrigins,
 		c.CookieDomain,
 		c.CookieSecure,
 	)
