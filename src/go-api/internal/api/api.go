@@ -48,7 +48,7 @@ func New(
 	promoRegistry *promo.Registry,
 	registrationManager *registration.Manager,
 	checker *status.Checker,
-	adminOrigin string,
+	allowedOrigins []string,
 	cookieDomain string,
 	cookieSecure bool,
 ) *API {
@@ -68,7 +68,7 @@ func New(
 	registry := prometheus.NewRegistry()
 	e.Use(
 		middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins:     []string{adminOrigin, "https://leto.salezko.sk"},
+			AllowOrigins:     allowedOrigins,
 			AllowCredentials: true,
 			AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
 			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
